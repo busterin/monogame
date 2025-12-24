@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------------
   const mapEl = document.getElementById("map");
   const busterImg = document.getElementById("busterImg");
-  const scoreEl = document.getElementById("score");
+
   const progressEl = document.getElementById("progress");
 
   const missionModal = document.getElementById("missionModal");
@@ -56,28 +56,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalScoreEl = document.getElementById("finalScore");
   const playAgainBtn = document.getElementById("playAgainBtn");
 
+  // Baraja / personajes
+  const deckBtn = document.getElementById("deckBtn");
+  const deckModal = document.getElementById("deckModal");
+  const closeDeckBtn = document.getElementById("closeDeckBtn");
+  const deckGrid = document.getElementById("deckGrid");
+  const deckDetail = document.getElementById("deckDetail");
+
   // -----------------------------
   // ESTADO
   // -----------------------------
-  let score = 0;
+  let score = 0; // sigue existiendo para la pantalla final
 
   let pendingMissions = [...MISSIONS];
 
-  // missionId -> {
-  //   mission, pointEl,
-  //   remainingMs, lastTickAt,
-  //   phase: "spawned" | "executing" | "ready" | "done",
-  //   isPaused,
-  //   assignedCharIds:Set,
-  //   chance:number,
-  //   execRemainingMs:number
-  // }
+  // missionId -> state
   let activePoints = new Map();
-
   let completedMissionIds = new Set();
 
   // Bloqueo de personajes mientras ejecutan misión
-  let lockedCharIds = new Set(); // charId bloqueado
+  let lockedCharIds = new Set();
 
   // Modal selección
   let currentMissionId = null;
@@ -89,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let spawnTimer = null;
 
   // Zona prohibida (buster) en coordenadas de MAPA
-  let noSpawnRect = null; // {left, top, right, bottom} en px relativo al map
+  let noSpawnRect = null;
 
   // -----------------------------
   // HELPERS
@@ -100,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setScore(delta) {
     score += delta;
-    scoreEl.textContent = String(score);
   }
 
   function setProgress() {
@@ -139,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const imgRect = busterImg.getBoundingClientRect();
     if (!mapRect.width || !imgRect.width) return;
 
-    const margin = 14; // margen extra
+    const margin = 14;
     noSpawnRect = {
       left: (imgRect.left - mapRect.left) - margin,
       top: (imgRect.top - mapRect.top) - margin,
@@ -150,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pointWouldOverlapNoSpawn(xPx, yPx) {
     if (!noSpawnRect) return false;
-    const r = 14; // radio aproximado + margen
+    const r = 14;
     const left = xPx - r, right = xPx + r, top = yPx - r, bottom = yPx + r;
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
@@ -168,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const mapRect = mapEl.getBoundingClientRect();
 
     let xPct = 50, yPct = 50;
-
     for (let i = 0; i < 40; i++) {
       xPct = rand(8, 92);
       yPct = rand(10, 86);
@@ -187,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pointEl: point,
       remainingMs: MISSION_LIFETIME_MS,
       lastTickAt: performance.now(),
-      phase: "spawned",
+      phase: "spawned", // spawned | executing | ready
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
@@ -211,20 +207,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
     if (completedMissionIds.has(missionId)) return;
 
-    if (st.phase === "spawned") {
-      openMission(missionId);
-      return;
-    }
-
-    if (st.phase === "executing") {
-      // Durante el minuto, no se puede resolver
-      return;
-    }
-
-    if (st.phase === "ready") {
-      openRouletteForMission(missionId);
-      return;
-    }
+    if (st.phase === "spawned") return openMission(missionId);
+    if (st.phase === "executing") return; // aún no
+    if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
   function removePoint(missionId) {
@@ -237,9 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function releaseCharsForMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    if (st.assignedCharIds && st.assignedCharIds.size) {
-      for (const cid of st.assignedCharIds) lockedCharIds.delete(cid);
-    }
+    for (const cid of (st.assignedCharIds || [])) lockedCharIds.delete(cid);
   }
 
   function failMission(missionId) {
@@ -307,10 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (st.phase === "spawned") {
           st.remainingMs -= dt;
-          if (st.remainingMs <= 0) {
-            // Expira sin asignación => fallo
-            failMission(mid);
-          }
+          if (st.remainingMs <= 0) failMission(mid);
           continue;
         }
 
@@ -320,8 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
             st.phase = "ready";
             st.execRemainingMs = 0;
 
-            // Quitar reloj (solo en assigned) -> al pasar a ready quitamos assigned
-            // y dejamos parpadeo exagerado amarillo con la clase ready
+            // listo para resolver: parpadeo exagerado amarillo
             st.pointEl.classList.remove("assigned");
             st.pointEl.classList.add("ready");
           }
@@ -338,7 +317,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = activePoints.get(missionId);
     if (!st) return;
 
-    // Pausa cuenta atrás mientras elige
     st.isPaused = true;
     pausedMissionId = missionId;
 
@@ -360,5 +338,253 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeMissionModal() {
     hideModal(missionModal);
 
-    // Reanuda si aún estaba en fase spawned
-    if (pausedMissionId
+    if (pausedMissionId) {
+      const st = activePoints.get(pausedMissionId);
+      if (st && st.phase === "spawned") {
+        st.isPaused = false;
+        st.lastTickAt = performance.now();
+      }
+    }
+
+    pausedMissionId = null;
+    currentMissionId = null;
+    selectedCharIds = new Set();
+  }
+
+  function renderCharacters() {
+    charactersGrid.innerHTML = "";
+
+    CHARACTERS.forEach(ch => {
+      const locked = lockedCharIds.has(ch.id);
+
+      const card = document.createElement("div");
+      card.className = "char" + (locked ? " locked" : "");
+      card.dataset.id = ch.id;
+
+      card.innerHTML = `
+        <div>
+          <div class="name">${ch.name}</div>
+          <div class="tag" style="display:none">${ch.internalTag}</div>
+        </div>
+        <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (locked) {
+          pickHint.textContent = "Ese personaje está ocupado en otra misión.";
+          pickHint.style.opacity = "1";
+          return;
+        }
+        toggleCharacter(ch.id, card);
+      });
+
+      charactersGrid.appendChild(card);
+    });
+  }
+
+  function toggleCharacter(charId, cardEl) {
+    if (selectedCharIds.has(charId)) {
+      selectedCharIds.delete(charId);
+      cardEl.classList.remove("selected");
+      cardEl.querySelector(".pill").textContent = "Elegir";
+    } else {
+      if (selectedCharIds.size >= 2) {
+        pickHint.textContent = "Máximo 2 personajes por misión.";
+        pickHint.style.opacity = "1";
+        return;
+      }
+      selectedCharIds.add(charId);
+      cardEl.classList.add("selected");
+      cardEl.querySelector(".pill").textContent = "Elegido";
+    }
+    updateChanceUI();
+  }
+
+  function updateChanceUI() {
+    const st = currentMissionId ? activePoints.get(currentMissionId) : null;
+    if (!st) return (chanceValueEl.textContent = "—");
+
+    if (selectedCharIds.size === 0) return (chanceValueEl.textContent = "10%");
+    const chance = computeChance(st.mission, selectedCharIds);
+    chanceValueEl.textContent = `${Math.round(chance * 100)}%`;
+  }
+
+  // -----------------------------
+  // CONFIRMAR => ejecución 1 min (amarillo) + bloqueo
+  // -----------------------------
+  function confirmMission() {
+    const st = currentMissionId ? activePoints.get(currentMissionId) : null;
+    if (!st) return;
+
+    if (selectedCharIds.size < 1) {
+      pickHint.textContent = "Debes seleccionar al menos 1 personaje.";
+      pickHint.style.opacity = "1";
+      return;
+    }
+
+    st.assignedCharIds = new Set(selectedCharIds);
+    st.chance = computeChance(st.mission, st.assignedCharIds);
+
+    for (const cid of st.assignedCharIds) lockedCharIds.add(cid);
+
+    st.phase = "executing";
+    st.execRemainingMs = EXECUTION_TIME_MS;
+    st.isPaused = false;
+    st.lastTickAt = performance.now();
+
+    st.pointEl.classList.add("assigned");
+    st.pointEl.classList.remove("ready");
+
+    hideModal(missionModal);
+    pausedMissionId = null;
+    currentMissionId = null;
+    selectedCharIds = new Set();
+  }
+
+  // -----------------------------
+  // RULETA PONDERADA
+  // -----------------------------
+  function spinRoulette(chance, onDone) {
+    rouletteOutcome.textContent = "";
+    rouletteOkBtn.disabled = true;
+
+    const greenPct = clamp(chance, 0.01, 0.99) * 100;
+    rouletteWheel.style.background = `conic-gradient(from 0deg,
+      rgba(46,229,157,.85) 0 ${greenPct}%,
+      rgba(255,59,59,.85) ${greenPct}% 100%)`;
+
+    const turns = randInt(4, 7);
+    const finalDeg = turns * 360 + randInt(0, 359);
+
+    rouletteWheel.animate(
+      [{ transform: "rotate(0deg)" }, { transform: `rotate(${finalDeg}deg)` }],
+      { duration: 1400, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" }
+    );
+
+    setTimeout(() => {
+      const win = Math.random() < chance;
+      rouletteOutcome.textContent = win ? "✅ ¡Éxito!" : "❌ Fallo";
+      rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
+      rouletteOkBtn.disabled = false;
+      onDone(win);
+    }, 1500);
+  }
+
+  function openRouletteForMission(missionId) {
+    const st = activePoints.get(missionId);
+    if (!st || st.phase !== "ready") return;
+
+    showModal(rouletteModal);
+
+    spinRoulette(st.chance ?? 0.10, (win) => {
+      rouletteOkBtn.onclick = () => {
+        hideModal(rouletteModal);
+        if (win) winMission(missionId);
+        else failMission(missionId);
+        rouletteOkBtn.disabled = true;
+      };
+    });
+  }
+
+  // -----------------------------
+  // BARAJA / PERSONAJES
+  // -----------------------------
+  function openDeck() {
+    deckDetail.textContent = "Selecciona un personaje.";
+    deckGrid.innerHTML = "";
+
+    CHARACTERS.forEach(ch => {
+      const card = document.createElement("div");
+      card.className = "char";
+      card.innerHTML = `
+        <div>
+          <div class="name">${ch.name}</div>
+          <div class="tag" style="display:none">${ch.internalTag}</div>
+        </div>
+        <div class="pill">Ver</div>
+      `;
+
+      card.addEventListener("click", () => {
+        deckDetail.textContent = "Prueba";
+      });
+
+      deckGrid.appendChild(card);
+    });
+
+    showModal(deckModal);
+  }
+
+  function closeDeck() {
+    hideModal(deckModal);
+  }
+
+  // -----------------------------
+  // FINAL / RESET
+  // -----------------------------
+  function finishGame() {
+    if (lifeTicker) clearInterval(lifeTicker);
+    if (spawnTimer) clearTimeout(spawnTimer);
+
+    finalScoreEl.textContent = String(score);
+    showModal(finalModal);
+  }
+
+  function resetGame() {
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(finalModal);
+    hideModal(deckModal);
+
+    if (lifeTicker) clearInterval(lifeTicker);
+    if (spawnTimer) clearTimeout(spawnTimer);
+
+    for (const [mid] of activePoints.entries()) removePoint(mid);
+
+    score = 0;
+    pendingMissions = [...MISSIONS];
+    activePoints = new Map();
+    completedMissionIds = new Set();
+    lockedCharIds = new Set();
+
+    currentMissionId = null;
+    selectedCharIds = new Set();
+    pausedMissionId = null;
+
+    setProgress();
+
+    startLifeTicker();
+    scheduleNextSpawn();
+  }
+
+  // -----------------------------
+  // EVENTS
+  // -----------------------------
+  closeModalBtn.addEventListener("click", closeMissionModal);
+  missionModal.addEventListener("click", (e) => {
+    if (e.target === missionModal) closeMissionModal();
+  });
+
+  confirmBtn.addEventListener("click", confirmMission);
+  playAgainBtn.addEventListener("click", resetGame);
+
+  deckBtn.addEventListener("click", openDeck);
+  closeDeckBtn.addEventListener("click", closeDeck);
+  deckModal.addEventListener("click", (e) => {
+    if (e.target === deckModal) closeDeck();
+  });
+
+  // Recalcular zona no-spawn en carga + resize
+  function refreshNoSpawn() { computeNoSpawnRect(); }
+  window.addEventListener("resize", refreshNoSpawn);
+  if (busterImg) {
+    if (busterImg.complete) refreshNoSpawn();
+    else busterImg.addEventListener("load", refreshNoSpawn);
+  }
+
+  // -----------------------------
+  // INIT
+  // -----------------------------
+  setProgress();
+  startLifeTicker();
+  scheduleNextSpawn();
+});
