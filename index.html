@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de recursos (Prototipo)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div>
+          <div class="title">Gestión de recursos</div>
+          <div class="subtitle">Toca los puntos rojos cuando aparezcan</div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hud-card">
+          <div class="hud-label">Puntuación</div>
+          <div id="score" class="hud-value">0</div>
+        </div>
+        <div class="hud-card">
+          <div class="hud-label">Misiones</div>
+          <div id="progress" class="hud-value">0 / 4</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div id="map" class="map" aria-label="Mapa del juego">
+        <!-- Puntos rojos se inyectan aquí -->
+        <div class="map-hint">
+          Los puntos aparecen al azar y duran <b>2 minutos</b>.<br/>
+          Al abrir una misión, el tiempo se <b>detiene</b>.
+        </div>
+      </div>
+    </main>
+
+    <footer class="bottombar">
+      <button id="resetBtn" class="btn ghost" type="button">Reiniciar</button>
+      <div class="small">
+        Reglas: +15 éxito · -5 fallo o expira · 1-2 personajes · prob. 90% si hay etiqueta correcta, si no 10%.
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL MISIÓN -->
+  <div id="missionModal" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="missionTitle">
+      <div class="modal-head">
+        <div>
+          <div id="missionTitle" class="modal-title">Misión</div>
+          <div id="missionText" class="modal-text">Texto de misión</div>
+        </div>
+        <button id="closeModalBtn" class="icon-btn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title">Elige 1 o 2 personajes</div>
+        <div id="charactersGrid" class="grid"></div>
+        <div id="pickHint" class="hint">Selecciona al menos 1 personaje.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="modal-actions">
+        <div class="chance">
+          Probabilidad de éxito: <b id="chanceValue">10%</b>
+        </div>
+        <button id="confirmBtn" class="btn" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RULETA -->
+  <div id="rouletteModal" class="modal" aria-hidden="true">
+    <div class="modal-card roulette-card" role="dialog" aria-modal="true" aria-labelledby="rouletteTitle">
+      <div class="modal-head">
+        <div>
+          <div id="rouletteTitle" class="modal-title">Resolviendo misión…</div>
+          <div id="rouletteSub" class="modal-text">La ruleta decidirá el resultado según tu probabilidad.</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="roulette-wrap">
+        <div class="roulette">
+          <div class="roulette-pointer">▼</div>
+          <div id="rouletteWheel" class="roulette-wheel"></div>
+        </div>
+        <div id="rouletteOutcome" class="roulette-outcome"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="modal-actions">
+        <button id="rouletteOkBtn" class="btn" type="button" disabled>Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FINAL -->
+  <div id="finalModal" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="finalTitle">
+      <div class="modal-head">
+        <div>
+          <div id="finalTitle" class="modal-title">Fin de la partida</div>
+          <div class="modal-text">Has completado las 4 misiones.</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="final-score">
+        <div class="final-label">Puntuación final</div>
+        <div id="finalScore" class="final-value">0</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="modal-actions">
+        <button id="playAgainBtn" class="btn" type="button">Jugar otra vez</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
