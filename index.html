@@ -18,10 +18,11 @@
       </div>
 
       <div class="hud">
-        <div class="hud-card">
-          <div class="hud-label">Puntuación</div>
-          <div id="score" class="hud-value">0</div>
-        </div>
+        <!-- Icono baraja (reemplaza el contador de puntuación) -->
+        <button id="deckBtn" class="hud-icon-btn" type="button" aria-label="Ver personajes">
+          <span class="deck-icon" aria-hidden="true">🃏</span>
+        </button>
+
         <div class="hud-card">
           <div class="hud-label">Misiones</div>
           <div id="progress" class="hud-value">0 / 4</div>
@@ -32,7 +33,7 @@
     <main class="stage">
       <div id="map" class="map" aria-label="Mapa del juego">
         <img id="busterImg" class="buster-img" src="images/buster1.PNG" alt="Buster" />
-        <!-- (se quitó el texto/ayuda sobre el mapa) -->
+        <!-- sin texto encima -->
       </div>
     </main>
   </div>
@@ -116,6 +117,30 @@
 
       <div class="modal-actions">
         <button id="playAgainBtn" class="btn" type="button">Jugar otra vez</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL BARAJA / PERSONAJES -->
+  <div id="deckModal" class="modal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deckTitle">
+      <div class="modal-head">
+        <div>
+          <div id="deckTitle" class="modal-title">Personajes</div>
+          <div class="modal-text">Pulsa un personaje para ver su info.</div>
+        </div>
+        <button id="closeDeckBtn" class="icon-btn" type="button" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div id="deckGrid" class="grid"></div>
+
+      <div class="divider"></div>
+
+      <div class="section">
+        <div class="section-title">Detalle</div>
+        <div id="deckDetail" class="deck-detail">Selecciona un personaje.</div>
       </div>
     </div>
   </div>
