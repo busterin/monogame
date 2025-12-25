@@ -95,7 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentMissionId = null;
   let selectedCharIds = new Set();
-  let pausedMissionId = null;
 
   let lifeTicker = null;
   let spawnTimer = null;
@@ -111,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let avatarIndex = 0;
 
   // Habilidad especial
-  let specialUsed = false;     // consumida
-  let specialArmed = false;    // lista para elegir misión
+  let specialUsed = false;   // consumida
+  let specialArmed = false;  // lista para elegir misión
 
   // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -136,13 +135,17 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // Pausar/reanudar TODAS las misiones mientras un modal esté abierto (incluye habilidad)
+  // Pausar/reanudar TODAS las misiones mientras un modal esté abierto
   function setGlobalPause(paused) {
     const now = performance.now();
     for (const st of activePoints.values()) {
       st.isPaused = paused;
       st.lastTickAt = now;
     }
+  }
+
+  function setSpecialArmedUI(isArmed) {
+    playerImg.classList.toggle("special-armed", !!isArmed);
   }
 
   function normalizeTag(tag) {
@@ -192,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* -----------------------------
      SELECTOR (carrusel) + animación
   ------------------------------ */
-  function animateCarousel(direction /* -1 left, +1 right */) {
+  function animateCarousel(direction) {
     const dx = direction > 0 ? 24 : -24;
 
     avatarPreviewImg.animate(
@@ -249,6 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // reset habilidad por partida
     specialUsed = false;
     specialArmed = false;
+    setSpecialArmedUI(false);
 
     applySelectedAvatarToMap();
 
@@ -314,10 +318,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
     if (completedMissionIds.has(missionId)) return;
 
-    // ✅ habilidad armada: completa automáticamente con ruleta verde
+    // habilidad armada: completa automáticamente con ruleta verde
     if (specialArmed && !specialUsed) {
       specialUsed = true;
       specialArmed = false;
+      setSpecialArmedUI(false);
       openForcedWinRoulette(missionId);
       return;
     }
@@ -419,7 +424,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
 
     setGlobalPause(true);
-    pausedMissionId = missionId;
 
     currentMissionId = missionId;
     selectedCharIds = new Set();
@@ -436,11 +440,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeMissionModal() {
     hideModal(missionModal);
-    pausedMissionId = null;
     currentMissionId = null;
     selectedCharIds = new Set();
-
-    // reanuda si no hay otros modales abiertos
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
@@ -511,7 +512,6 @@ document.addEventListener("DOMContentLoaded", () => {
     st.pointEl.classList.remove("ready");
 
     hideModal(missionModal);
-    pausedMissionId = null;
     currentMissionId = null;
     selectedCharIds = new Set();
 
@@ -565,20 +565,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ habilidad: ruleta 100% verde + victoria garantizada
   function openForcedWinRoulette(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
 
-    // si estaba executing, liberará luego por winMission()
-    // si estaba spawned, también vale (se completa sin asignar nadie)
     setGlobalPause(true);
     showModal(rouletteModal);
 
-    spinRoulette(1, (win) => {
+    spinRoulette(1, () => {
       rouletteOkBtn.onclick = () => {
         hideModal(rouletteModal);
-        // win siempre true aquí
         winMission(missionId);
         rouletteOkBtn.disabled = true;
         if (!isAnyModalOpen()) setGlobalPause(false);
@@ -587,12 +583,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -----------------------------
-     DECK (cards) + popup
+     DECK + popup
   ------------------------------ */
   function openCardInfo(cardData){
     setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
-    cardInfoText.textContent = cardData.text; // "Prueba"
+    cardInfoText.textContent = cardData.text;
     showModal(cardInfoModal);
   }
   function closeCardInfo(){
@@ -634,10 +630,7 @@ document.addEventListener("DOMContentLoaded", () => {
      HABILIDAD ESPECIAL
   ------------------------------ */
   function openSpecialModal() {
-    if (specialUsed) {
-      // ya usada: no hacemos nada (si quieres mensaje de “ya usada”, lo añadimos)
-      return;
-    }
+    if (specialUsed) return;
     setGlobalPause(true);
     showModal(specialModal);
   }
@@ -649,12 +642,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function acceptSpecial() {
     if (specialUsed) return;
-    specialArmed = true; // se consumirá al pulsar una misión
+    specialArmed = true;
+    setSpecialArmedUI(true);
     closeSpecialModal();
   }
 
   function cancelSpecial() {
     specialArmed = false;
+    setSpecialArmedUI(false);
     closeSpecialModal();
   }
 
@@ -693,10 +688,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     currentMissionId = null;
     selectedCharIds = new Set();
-    pausedMissionId = null;
 
     specialUsed = false;
     specialArmed = false;
+    setSpecialArmedUI(false);
 
     setProgress();
     setGlobalPause(false);
@@ -711,7 +706,6 @@ document.addEventListener("DOMContentLoaded", () => {
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
-  // teclado (flechas)
   document.addEventListener("keydown", (e) => {
     if (!startScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevAvatar();
@@ -724,7 +718,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // click personaje -> habilidad
   playerImg.addEventListener("click", openSpecialModal);
 
-  // cerrar misión
+  // misión
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
@@ -753,6 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
+  // resize
   window.addEventListener("resize", () => {
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
