@@ -1,7 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // -----------------------------
-  // CONFIG (misiones y personajes)
-  // -----------------------------
   const MISSIONS = [
     { id: "m1", title: "Escuela de la Energía", internalTag: "Educación", text: "Misión: Activar una dinámica educativa y coordinar recursos para un taller." },
     { id: "m2", title: "Picofino", internalTag: "Picofino", text: "Misión: Resolver una necesidad operativa de Picofino con recursos limitados." },
@@ -16,26 +13,24 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c4", name: "Buster", internalTag: "Educación" }
   ];
 
-  // -----------------------------
-  // REGLAS
-  // -----------------------------
-  const MISSION_LIFETIME_MS = 2 * 60 * 1000; // 2 minutos si NO asignas
-  const EXECUTION_TIME_MS = 60 * 1000;       // 1 minuto tras asignar
-  const SUCCESS_IF_MATCH = 0.90;
-  const SUCCESS_IF_NO_MATCH = 0.10;
+  // Reglas
+  const MISSION_LIFETIME_MS = 2 * 60 * 1000;
+  const EXECUTION_TIME_MS = 60 * 1000;
+
+  // Nueva probabilidad por personaje:
+  // +80% si coincide tag, +10% si no
+  const MATCH_ADD = 0.80;
+  const NO_MATCH_ADD = 0.10;
+
   const SCORE_WIN = 15;
   const SCORE_LOSE = -5;
 
-  // Spawn: no todos a la vez
   const SPAWN_MIN_DELAY_MS = 1200;
   const SPAWN_MAX_DELAY_MS = 6000;
 
-  // -----------------------------
   // DOM
-  // -----------------------------
   const mapEl = document.getElementById("map");
   const busterImg = document.getElementById("busterImg");
-
   const progressEl = document.getElementById("progress");
 
   const missionModal = document.getElementById("missionModal");
@@ -44,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeModalBtn = document.getElementById("closeModalBtn");
   const charactersGrid = document.getElementById("charactersGrid");
   const pickHint = document.getElementById("pickHint");
-  const chanceValueEl = document.getElementById("chanceValue");
   const confirmBtn = document.getElementById("confirmBtn");
 
   const rouletteModal = document.getElementById("rouletteModal");
@@ -56,63 +50,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalScoreEl = document.getElementById("finalScore");
   const playAgainBtn = document.getElementById("playAgainBtn");
 
-  // Baraja / personajes
   const deckBtn = document.getElementById("deckBtn");
   const deckModal = document.getElementById("deckModal");
   const closeDeckBtn = document.getElementById("closeDeckBtn");
   const deckGrid = document.getElementById("deckGrid");
   const deckDetail = document.getElementById("deckDetail");
 
-  // -----------------------------
-  // ESTADO
-  // -----------------------------
-  let score = 0; // sigue existiendo para la pantalla final
-
+  // Estado
+  let score = 0;
   let pendingMissions = [...MISSIONS];
-
-  // missionId -> state
   let activePoints = new Map();
   let completedMissionIds = new Set();
-
-  // Bloqueo de personajes mientras ejecutan misión
   let lockedCharIds = new Set();
 
-  // Modal selección
   let currentMissionId = null;
   let selectedCharIds = new Set();
   let pausedMissionId = null;
 
-  // Timers
   let lifeTicker = null;
   let spawnTimer = null;
 
-  // Zona prohibida (buster) en coordenadas de MAPA
   let noSpawnRect = null;
 
-  // -----------------------------
-  // HELPERS
-  // -----------------------------
+  // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
 
-  function setScore(delta) {
-    score += delta;
-  }
+  function setScore(delta) { score += delta; }
 
   function setProgress() {
     progressEl.textContent = `${completedMissionIds.size} / ${MISSIONS.length}`;
   }
 
-  function showModal(el) {
-    el.classList.add("show");
-    el.setAttribute("aria-hidden", "false");
-  }
-
-  function hideModal(el) {
-    el.classList.remove("show");
-    el.setAttribute("aria-hidden", "true");
-  }
+  function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
+  function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
 
   function normalizeTag(tag) {
     const t = String(tag || "").trim().toLowerCase();
@@ -123,11 +95,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return tag;
   }
 
+  // NUEVA prob: suma por personaje (máx 100%)
   function computeChance(mission, chosenIds) {
     const missionTag = normalizeTag(mission.internalTag);
-    const chosen = CHARACTERS.filter(c => chosenIds.has(c.id));
-    const hasMatch = chosen.some(c => normalizeTag(c.internalTag) === missionTag);
-    return hasMatch ? SUCCESS_IF_MATCH : SUCCESS_IF_NO_MATCH;
+
+    let p = 0;
+    for (const cid of chosenIds) {
+      const ch = CHARACTERS.find(c => c.id === cid);
+      if (!ch) continue;
+      const match = normalizeTag(ch.internalTag) === missionTag;
+      p += match ? MATCH_ADD : NO_MATCH_ADD;
+    }
+    return clamp(p, 0, 1);
   }
 
   function computeNoSpawnRect() {
@@ -152,9 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
-  // -----------------------------
-  // PUNTOS EN MAPA
-  // -----------------------------
+  // Puntos
   function createMissionPoint(mission) {
     const point = document.createElement("div");
     point.className = "point";
@@ -168,10 +145,8 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < 40; i++) {
       xPct = rand(8, 92);
       yPct = rand(10, 86);
-
       const xPx = (xPct / 100) * mapRect.width;
       const yPx = (yPct / 100) * mapRect.height;
-
       if (!pointWouldOverlapNoSpawn(xPx, yPx)) break;
     }
 
@@ -208,14 +183,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.has(missionId)) return;
 
     if (st.phase === "spawned") return openMission(missionId);
-    if (st.phase === "executing") return; // aún no
+    if (st.phase === "executing") return;
     if (st.phase === "ready") return openRouletteForMission(missionId);
   }
 
   function removePoint(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    if (st.pointEl && st.pointEl.parentNode) st.pointEl.parentNode.removeChild(st.pointEl);
+    if (st.pointEl?.parentNode) st.pointEl.parentNode.removeChild(st.pointEl);
     activePoints.delete(missionId);
   }
 
@@ -251,9 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.size >= MISSIONS.length) finishGame();
   }
 
-  // -----------------------------
-  // SPAWN CONTROLADO
-  // -----------------------------
+  // Spawn
   function scheduleNextSpawn() {
     if (spawnTimer) clearTimeout(spawnTimer);
     if (pendingMissions.length === 0) return;
@@ -270,9 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, delay);
   }
 
-  // -----------------------------
-  // TICKERS (vida y ejecución)
-  // -----------------------------
+  // Ticker
   function startLifeTicker() {
     if (lifeTicker) clearInterval(lifeTicker);
 
@@ -280,10 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = performance.now();
 
       for (const [mid, st] of activePoints.entries()) {
-        if (st.isPaused) {
-          st.lastTickAt = now;
-          continue;
-        }
+        if (st.isPaused) { st.lastTickAt = now; continue; }
 
         const dt = now - st.lastTickAt;
         st.lastTickAt = now;
@@ -299,8 +267,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if (st.execRemainingMs <= 0) {
             st.phase = "ready";
             st.execRemainingMs = 0;
-
-            // listo para resolver: parpadeo exagerado amarillo
             st.pointEl.classList.remove("assigned");
             st.pointEl.classList.add("ready");
           }
@@ -310,9 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 200);
   }
 
-  // -----------------------------
-  // MODAL MISIÓN (selección)
-  // -----------------------------
+  // Modal misión
   function openMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
@@ -330,8 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
     pickHint.style.opacity = "1";
 
     renderCharacters();
-    updateChanceUI();
-
     showModal(missionModal);
   }
 
@@ -364,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
       card.innerHTML = `
         <div>
           <div class="name">${ch.name}</div>
-          <div class="tag" style="display:none">${ch.internalTag}</div>
+          <div class="tag">${ch.internalTag}</div>
         </div>
         <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
       `;
@@ -397,21 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
       cardEl.classList.add("selected");
       cardEl.querySelector(".pill").textContent = "Elegido";
     }
-    updateChanceUI();
   }
 
-  function updateChanceUI() {
-    const st = currentMissionId ? activePoints.get(currentMissionId) : null;
-    if (!st) return (chanceValueEl.textContent = "—");
-
-    if (selectedCharIds.size === 0) return (chanceValueEl.textContent = "10%");
-    const chance = computeChance(st.mission, selectedCharIds);
-    chanceValueEl.textContent = `${Math.round(chance * 100)}%`;
-  }
-
-  // -----------------------------
-  // CONFIRMAR => ejecución 1 min (amarillo) + bloqueo
-  // -----------------------------
+  // Confirmar -> ejecutar 1 min
   function confirmMission() {
     const st = currentMissionId ? activePoints.get(currentMissionId) : null;
     if (!st) return;
@@ -441,9 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCharIds = new Set();
   }
 
-  // -----------------------------
-  // RULETA PONDERADA
-  // -----------------------------
+  // Ruleta ponderada
   function spinRoulette(chance, onDone) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
@@ -486,9 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // -----------------------------
-  // BARAJA / PERSONAJES
-  // -----------------------------
+  // Baraja
   function openDeck() {
     deckDetail.textContent = "Selecciona un personaje.";
     deckGrid.innerHTML = "";
@@ -499,32 +445,22 @@ document.addEventListener("DOMContentLoaded", () => {
       card.innerHTML = `
         <div>
           <div class="name">${ch.name}</div>
-          <div class="tag" style="display:none">${ch.internalTag}</div>
         </div>
         <div class="pill">Ver</div>
       `;
-
-      card.addEventListener("click", () => {
-        deckDetail.textContent = "Prueba";
-      });
-
+      card.addEventListener("click", () => { deckDetail.textContent = "Prueba"; });
       deckGrid.appendChild(card);
     });
 
     showModal(deckModal);
   }
 
-  function closeDeck() {
-    hideModal(deckModal);
-  }
+  function closeDeck() { hideModal(deckModal); }
 
-  // -----------------------------
-  // FINAL / RESET
-  // -----------------------------
+  // Final / reset
   function finishGame() {
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
-
     finalScoreEl.textContent = String(score);
     showModal(finalModal);
   }
@@ -551,29 +487,22 @@ document.addEventListener("DOMContentLoaded", () => {
     pausedMissionId = null;
 
     setProgress();
-
     startLifeTicker();
     scheduleNextSpawn();
   }
 
-  // -----------------------------
-  // EVENTS
-  // -----------------------------
+  // Events
   closeModalBtn.addEventListener("click", closeMissionModal);
-  missionModal.addEventListener("click", (e) => {
-    if (e.target === missionModal) closeMissionModal();
-  });
-
+  missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
+
   playAgainBtn.addEventListener("click", resetGame);
 
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
-  deckModal.addEventListener("click", (e) => {
-    if (e.target === deckModal) closeDeck();
-  });
+  deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
-  // Recalcular zona no-spawn en carga + resize
+  // no-spawn rect
   function refreshNoSpawn() { computeNoSpawnRect(); }
   window.addEventListener("resize", refreshNoSpawn);
   if (busterImg) {
@@ -581,9 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else busterImg.addEventListener("load", refreshNoSpawn);
   }
 
-  // -----------------------------
-  // INIT
-  // -----------------------------
+  // Init
   setProgress();
   startLifeTicker();
   scheduleNextSpawn();
