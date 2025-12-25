@@ -49,7 +49,6 @@ img{ max-width:100%; height:auto; }
 
 .start-title{ font-weight: 1000; font-size: 22px; }
 .start-subtitle{ margin-top: 6px; color: var(--muted); font-size: 13px; }
-
 .start-btn{ margin-top: 12px; width: min(260px, 100%); }
 
 /* Carrusel */
@@ -87,6 +86,7 @@ img{ max-width:100%; height:auto; }
   flex-direction:column;
   align-items:center;
   gap: 10px;
+  overflow:hidden; /* para la animación */
 }
 
 .carousel-img{
@@ -189,15 +189,22 @@ img{ max-width:100%; height:auto; }
   min-height: 420px;
 }
 
+/* 👇 ahora es clickable */
 .buster-img{
   position:absolute;
   left:12px;
   bottom:12px;
   width: 120px;
   z-index: 2;
-  pointer-events:none;
+  cursor:pointer;
+  pointer-events:auto;
   user-select:none;
   filter: drop-shadow(0 14px 22px rgba(0,0,0,.45));
+  transition: transform .12s ease, filter .12s ease;
+}
+.buster-img:hover{
+  transform: translateY(-2px) scale(1.02);
+  filter: drop-shadow(0 18px 26px rgba(0,0,0,.55));
 }
 
 /* ---------- POINTS ---------- */
@@ -336,6 +343,14 @@ img{ max-width:100%; height:auto; }
 }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
 
+/* botón "ghost" (para Cancelar habilidad) */
+.btn-ghost{
+  color: var(--text);
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: none;
+}
+
 /* ---------- ROULETTE ---------- */
 .roulette-card{ width:min(620px, 100%); }
 .roulette-wrap{ display:flex; flex-direction:column; align-items:center; gap:12px; padding: 6px 0 2px; }
@@ -437,13 +452,9 @@ img{ max-width:100%; height:auto; }
   .grid{ grid-template-columns: 1fr; }
   .buster-img{ width: 100px; }
 
-  .carousel{
-    grid-template-columns: 48px 1fr 48px;
-  }
+  .carousel{ grid-template-columns: 48px 1fr 48px; }
   .carousel-btn{
-    width:48px;
-    height:48px;
-    border-radius: 14px;
+    width:48px; height:48px; border-radius: 14px;
     font-size: 30px;
   }
   .carousel-img{ width: 150px; }
