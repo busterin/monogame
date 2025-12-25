@@ -523,3 +523,31 @@ img{ max-width:100%; height:auto; }
   .start-grid{ grid-template-columns: 1fr; }
   .deck-card img{ height: 170px; }
 }
+/* ✅ Modal: permite scroll interno si el contenido no cabe */
+.modal-card{
+  max-height: 86vh;
+  overflow: auto;
+}
+
+/* ✅ Grid de cartas: cartas más pequeñas */
+.deck-grid{
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ✅ Imagen de la carta más baja (más pequeña) */
+.deck-card img{
+  height: 120px;
+}
+
+/* ✅ Texto más compacto */
+.deck-card .deck-card-name{
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+/* ✅ En móvil, 2 columnas y sigue permitiendo scroll */
+@media (max-width: 520px){
+  .deck-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .deck-card img{ height: 110px; }
+}
