@@ -18,7 +18,7 @@
       </div>
     </section>
 
-    <!-- SELECTOR -->
+    <!-- SELECTOR AVATAR -->
     <section id="startScreen" class="start hidden">
       <div class="start-card">
         <div class="start-title">Elige tu personaje</div>
@@ -44,6 +44,25 @@
       </div>
     </section>
 
+    <!-- ✅ NUEVA PANTALLA: ELIGE 6 CARTAS -->
+    <section id="teamScreen" class="start hidden">
+      <div class="start-card">
+        <div class="start-title">Elige tu equipo</div>
+        <div class="start-subtitle">Selecciona exactamente <b>6</b> cartas. Esas serán las disponibles en las misiones y en la baraja.</div>
+
+        <div class="team-top">
+          <div class="team-counter">Seleccionadas: <span id="teamCount">0</span>/6</div>
+          <div id="teamHint" class="hint">Elige 6 cartas para continuar.</div>
+        </div>
+
+        <div id="teamGrid" class="team-grid"></div>
+
+        <div class="modal-actions end" style="margin-top:12px;">
+          <button id="teamConfirmBtn" class="btn" type="button" disabled>Confirmar equipo</button>
+        </div>
+      </div>
+    </section>
+
     <!-- JUEGO -->
     <div id="gameRoot" class="game hidden">
       <header class="topbar">
@@ -62,7 +81,6 @@
 
           <div class="hud-card">
             <div class="hud-label">Misiones</div>
-            <!-- ✅ solo número -->
             <div id="progress" class="hud-value">0</div>
           </div>
         </div>
@@ -137,7 +155,7 @@
       <div class="modal-head">
         <div>
           <div id="finalTitle" class="modal-title">Fin de la partida</div>
-          <div class="modal-text">Has completado las 4 misiones.</div>
+          <div class="modal-text">¡Tiempo!</div>
         </div>
       </div>
 
