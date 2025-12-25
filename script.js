@@ -15,11 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
   let gameEndAt = null;
   let gameClockTimer = null;
 
+  // ✅ nunca más de 10 puntos activos a la vez
+  const MAX_ACTIVE_POINTS = 10;
+
   // -------------------------
   // ✅ MISIONES (15 total)
   // - 10: Producción / Museos / Picofino / Educación
   // - 5: Programación
-  // Textos: “se entiende a quién enviar” pero sin decir el tag explícito.
   // -------------------------
   const MISSIONS = [
     // EDUCACIÓN (3)
@@ -127,15 +129,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ PERSONAJES (múltiples etiquetas)
   // -------------------------
   const CHARACTERS = [
-    { id: "c1", name: "Castri", tags: ["Producción", "Museos"] },      // +Museos
-    { id: "c2", name: "Maider", tags: ["Museos", "Producción"] },      // +Producción
+    { id: "c1", name: "Castri", tags: ["Producción", "Museos"] }, // +Museos
+    { id: "c2", name: "Maider", tags: ["Museos", "Producción"] }, // +Producción
     { id: "c3", name: "Celia", tags: ["Picofino"] },
     { id: "c4", name: "Buster", tags: ["Educación"] },
-    { id: "c5", name: "Dre", tags: ["Programación"] },                // nuevo
-    { id: "c6", name: "Voby", tags: ["Producción"] }                   // nuevo
+    { id: "c5", name: "Dre", tags: ["Programación"] }, // nuevo
+    { id: "c6", name: "Voby", tags: ["Producción"] } // nuevo
   ];
 
-  // Cartas (las dejo como estaban para no depender de imágenes nuevas)
+  // Cartas (sin tocar para no depender de imágenes nuevas)
   const CARDS = [
     { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Prueba" },
     { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Prueba" },
@@ -144,17 +146,15 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   // -------------------------
-  // Balance de tiempos (ajustable)
+  // Balance de tiempos (amarillo 1 min como antes)
   // -------------------------
-  const MISSION_LIFETIME_MS = 2 * 60 * 1000;
-  const EXECUTION_TIME_MS = 60 * 1000;
+  const MISSION_LIFETIME_MS = 2 * 60 * 1000; // tiempo en rojo antes de fallar
+  const EXECUTION_TIME_MS = 60 * 1000; // ✅ 1 min en amarillo antes de "ready"
 
-  const MATCH_ADD = 0.80;
-  const NO_MATCH_ADD = 0.10;
+  const MATCH_ADD = 0.8;
+  const NO_MATCH_ADD = 0.1;
 
-  // ✅ Puntuación acorde a “cuántas misiones te da tiempo a hacer”
-  // - éxito suma 1
-  // - fallo suma 0
+  // ✅ scoring por “misiones completadas”
   const SCORE_WIN = 1;
   const SCORE_LOSE = 0;
 
@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
     { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
-    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
+    { key: "celia", name: "Celia", src: "images/celia1.PNG", alt: "Celia" },
     { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider" }
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
@@ -252,13 +252,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
 
-  function setScore(delta) { score += delta; }
+  function setScore(delta) {
+    score += delta;
+  }
 
   // ✅ SOLO NÚMERO (sin /X)
-  function setProgress() { progressEl.textContent = String(completedMissionIds.size); }
+  function setProgress() {
+    progressEl.textContent = String(completedMissionIds.size);
+  }
 
-  function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
-  function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
+  function showModal(el) {
+    el.classList.add("show");
+    el.setAttribute("aria-hidden", "false");
+  }
+  function hideModal(el) {
+    el.classList.remove("show");
+    el.setAttribute("aria-hidden", "true");
+  }
 
   function isAnyModalOpen() {
     return (
@@ -299,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let p = 0;
 
     for (const cid of chosenIds) {
-      const ch = CHARACTERS.find(c => c.id === cid);
+      const ch = CHARACTERS.find((c) => c.id === cid);
       if (!ch) continue;
 
       const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
@@ -317,18 +327,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const margin = 14;
     noSpawnRect = {
-      left: (imgRect.left - mapRect.left) - margin,
-      top: (imgRect.top - mapRect.top) - margin,
-      right: (imgRect.right - mapRect.left) + margin,
-      bottom: (imgRect.bottom - mapRect.top) + margin
+      left: imgRect.left - mapRect.left - margin,
+      top: imgRect.top - mapRect.top - margin,
+      right: imgRect.right - mapRect.left + margin,
+      bottom: imgRect.bottom - mapRect.top + margin
     };
   }
 
   function pointWouldOverlapNoSpawn(xPx, yPx) {
     if (!noSpawnRect) return false;
     const r = 14;
-    const left = xPx - r, right = xPx + r, top = yPx - r, bottom = yPx + r;
-    return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
+    const left = xPx - r,
+      right = xPx + r,
+      top = yPx - r,
+      bottom = yPx + r;
+    return !(
+      right < noSpawnRect.left ||
+      left > noSpawnRect.right ||
+      bottom < noSpawnRect.top ||
+      top > noSpawnRect.bottom
+    );
   }
 
   function goToStartScreen() {
@@ -369,9 +387,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // ✅ Normalización automática de tamaño en el MAPA (igual que antes)
+  // ✅ Normalización automática de tamaño en el MAPA
   // -------------------------
-  const spriteBoxCache = new Map(); // src -> { w, h, boxH, boxW }
+  const spriteBoxCache = new Map();
   let referenceVisibleHeightPx = null;
 
   async function getSpriteBox(src) {
@@ -401,7 +419,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    let minX = width, minY = height, maxX = -1, maxY = -1;
+    let minX = width,
+      minY = height,
+      maxX = -1,
+      maxY = -1;
     const A_TH = 16;
 
     for (let y = 0; y < height; y++) {
@@ -423,8 +444,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return out;
     }
 
-    const boxW = (maxX - minX + 1);
-    const boxH = (maxY - minY + 1);
+    const boxW = maxX - minX + 1;
+    const boxH = maxY - minY + 1;
 
     const out = { w: img.naturalWidth, h: img.naturalHeight, boxH, boxW };
     spriteBoxCache.set(src, out);
@@ -459,10 +480,14 @@ document.addEventListener("DOMContentLoaded", () => {
       await applyNormalizedMapSizeFor(a.src);
       computeNoSpawnRect();
     } else {
-      playerImg.addEventListener("load", async () => {
-        await applyNormalizedMapSizeFor(a.src);
-        computeNoSpawnRect();
-      }, { once: true });
+      playerImg.addEventListener(
+        "load",
+        async () => {
+          await applyNormalizedMapSizeFor(a.src);
+          computeNoSpawnRect();
+        },
+        { once: true }
+      );
     }
   }
 
@@ -475,9 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     gameClockTimer = setInterval(() => {
       const now = performance.now();
-      if (now >= gameEndAt) {
-        endGameByTime();
-      }
+      if (now >= gameEndAt) endGameByTime();
     }, 250);
   }
 
@@ -485,14 +508,11 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(gameClockTimer);
     gameClockTimer = null;
 
-    // Detenemos spawns / ticker y cerramos modales en curso
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
 
-    // Si hay ruleta abierta, desactivamos el botón para evitar estados raros
     rouletteOkBtn.disabled = true;
 
-    // Cierra modales abiertos (si alguno está)
     hideModal(missionModal);
     hideModal(rouletteModal);
     hideModal(deckModal);
@@ -519,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setProgress();
     startLifeTicker();
     scheduleNextSpawn();
-    startGameClock(); // ✅ arranca los 5 minutos ocultos
+    startGameClock();
   }
 
   function createMissionPoint(mission) {
@@ -531,7 +551,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const mapRect = mapEl.getBoundingClientRect();
 
-    let xPct = 50, yPct = 50;
+    let xPct = 50,
+      yPct = 50;
     for (let i = 0; i < 40; i++) {
       xPct = rand(8, 92);
       yPct = rand(10, 86);
@@ -595,7 +616,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function releaseCharsForMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    for (const cid of (st.assignedCharIds || [])) lockedCharIds.delete(cid);
+    for (const cid of st.assignedCharIds || []) lockedCharIds.delete(cid);
   }
 
   function failMission(missionId) {
@@ -605,7 +626,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setScore(SCORE_LOSE);
     releaseCharsForMission(missionId);
     removePoint(missionId);
-    // ✅ ya no forzamos “fin por completar todas” porque el objetivo es el tiempo
   }
 
   function winMission(missionId) {
@@ -617,15 +637,29 @@ document.addEventListener("DOMContentLoaded", () => {
     removePoint(missionId);
   }
 
+  // ✅ Spawn aleatorio, pero nunca más de 10 puntos simultáneos
   function scheduleNextSpawn() {
     clearTimeout(spawnTimer);
-    if (pendingMissions.length === 0) {
-      // Si se acaban, reponemos para que siga habiendo puntos durante los 5 min
-      pendingMissions = [...MISSIONS];
+
+    if (gameClockTimer === null) return;
+
+    // cap: si hay 10 puntos, esperamos y reintentamos
+    if (activePoints.size >= MAX_ACTIVE_POINTS) {
+      spawnTimer = setTimeout(() => scheduleNextSpawn(), 800);
+      return;
     }
 
+    if (pendingMissions.length === 0) pendingMissions = [...MISSIONS];
+
     spawnTimer = setTimeout(() => {
-      if (gameClockTimer === null) return; // si el juego ya terminó por tiempo, no spawnear
+      if (gameClockTimer === null) return;
+
+      // doble-check
+      if (activePoints.size >= MAX_ACTIVE_POINTS) {
+        scheduleNextSpawn();
+        return;
+      }
+
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
       createMissionPoint(mission);
@@ -640,7 +674,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = performance.now();
 
       for (const [mid, st] of activePoints.entries()) {
-        if (st.isPaused) { st.lastTickAt = now; continue; }
+        if (st.isPaused) {
+          st.lastTickAt = now;
+          continue;
+        }
         const dt = now - st.lastTickAt;
         st.lastTickAt = now;
 
@@ -690,7 +727,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCharacters() {
     charactersGrid.innerHTML = "";
-    CHARACTERS.forEach(ch => {
+    CHARACTERS.forEach((ch) => {
       const locked = lockedCharIds.has(ch.id);
       const card = document.createElement("div");
       card.className = "char" + (locked ? " locked" : "");
@@ -745,7 +782,7 @@ document.addEventListener("DOMContentLoaded", () => {
     st.phase = "executing";
     st.execRemainingMs = EXECUTION_TIME_MS;
     st.lastTickAt = performance.now();
-    st.pointEl.classList.add("assigned");
+    st.pointEl.classList.add("assigned"); // ✅ amarillo
     st.pointEl.classList.remove("ready");
 
     hideModal(missionModal);
@@ -772,7 +809,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     setTimeout(() => {
-      const win = (forcedWin === null) ? (Math.random() < chance) : forcedWin;
+      const win = forcedWin === null ? Math.random() < chance : forcedWin;
       rouletteOutcome.textContent = win ? "✅ ¡Éxito!" : "❌ Fallo";
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
@@ -787,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setGlobalPause(true);
     showModal(rouletteModal);
 
-    spinRoulette(st.chance ?? 0.10, (win) => {
+    spinRoulette(st.chance ?? 0.1, (win) => {
       rouletteOkBtn.onclick = () => {
         hideModal(rouletteModal);
         win ? winMission(missionId) : failMission(missionId);
@@ -804,23 +841,27 @@ document.addEventListener("DOMContentLoaded", () => {
     setGlobalPause(true);
     showModal(rouletteModal);
 
-    spinRoulette(1, () => {
-      rouletteOkBtn.onclick = () => {
-        hideModal(rouletteModal);
-        winMission(missionId);
-        rouletteOkBtn.disabled = true;
-        if (!isAnyModalOpen()) setGlobalPause(false);
-      };
-    }, true);
+    spinRoulette(
+      1,
+      () => {
+        rouletteOkBtn.onclick = () => {
+          hideModal(rouletteModal);
+          winMission(missionId);
+          rouletteOkBtn.disabled = true;
+          if (!isAnyModalOpen()) setGlobalPause(false);
+        };
+      },
+      true
+    );
   }
 
-  function openCardInfo(cardData){
+  function openCardInfo(cardData) {
     setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
     cardInfoText.textContent = cardData.text;
     showModal(cardInfoModal);
   }
-  function closeCardInfo(){
+  function closeCardInfo() {
     hideModal(cardInfoModal);
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
@@ -828,7 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function openDeck() {
     setGlobalPause(true);
     deckGrid.innerHTML = "";
-    CARDS.forEach(cardData => {
+    CARDS.forEach((cardData) => {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "deck-card";
@@ -895,9 +936,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(gameClockTimer);
     gameClockTimer = null;
 
-    for (const st of activePoints.values()) {
-      st.pointEl?.parentNode?.removeChild(st.pointEl);
-    }
+    for (const st of activePoints.values()) st.pointEl?.parentNode?.removeChild(st.pointEl);
 
     score = 0;
     pendingMissions = [...MISSIONS];
@@ -941,27 +980,33 @@ document.addEventListener("DOMContentLoaded", () => {
   playerImg.addEventListener("click", openSpecialModal);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
-  missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
+  missionModal.addEventListener("click", (e) => {
+    if (e.target === missionModal) closeMissionModal();
+  });
   confirmBtn.addEventListener("click", confirmMission);
 
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
-  deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
+  deckModal.addEventListener("click", (e) => {
+    if (e.target === deckModal) closeDeck();
+  });
 
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
-  cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
+  cardInfoModal.addEventListener("click", (e) => {
+    if (e.target === cardInfoModal) closeCardInfo();
+  });
 
   closeSpecialBtn.addEventListener("click", cancelSpecial);
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
-  specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
+  specialModal.addEventListener("click", (e) => {
+    if (e.target === specialModal) cancelSpecial();
+  });
 
   playAgainBtn.addEventListener("click", () => {
-    // al volver al intro, paramos el reloj (y el juego se reiniciará al comenzar)
     clearInterval(gameClockTimer);
     gameClockTimer = null;
 
-    // reset completo (mantiene lógica)
     resetGame();
     gameRoot.classList.add("hidden");
     introScreen.classList.remove("hidden");
@@ -978,14 +1023,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // init
   renderAvatarCarousel(0);
 
-  // fija referencia tamaño (si el src inicial es Buster, deja listo para el resto)
+  // fija referencia tamaño
   if (playerImg?.getAttribute("src")) {
     const src = playerImg.getAttribute("src");
-    playerImg.addEventListener("load", async () => {
-      try {
-        referenceVisibleHeightPx = null;
-        await applyNormalizedMapSizeFor(src);
-      } catch {}
-    }, { once: true });
+    playerImg.addEventListener(
+      "load",
+      async () => {
+        try {
+          referenceVisibleHeightPx = null;
+          await applyNormalizedMapSizeFor(src);
+        } catch {}
+      },
+      { once: true }
+    );
   }
 });
