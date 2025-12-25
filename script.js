@@ -33,7 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const SPAWN_MIN_DELAY_MS = 1200;
   const SPAWN_MAX_DELAY_MS = 6000;
 
-  // DOM (start)
+  // DOM: Intro
+  const introScreen = document.getElementById("introScreen");
+  const introStartBtn = document.getElementById("introStartBtn");
+
+  // DOM: Start (selector)
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
 
@@ -44,13 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const dot0 = document.getElementById("dot0");
   const dot1 = document.getElementById("dot1");
 
+  // DOM: Game
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
   const playerImg = document.getElementById("playerImg");
-
-  // DOM (game)
   const progressEl = document.getElementById("progress");
 
+  // Mission modal
   const missionModal = document.getElementById("missionModal");
   const missionTitleEl = document.getElementById("missionTitle");
   const missionTextEl = document.getElementById("missionText");
@@ -59,28 +63,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const pickHint = document.getElementById("pickHint");
   const confirmBtn = document.getElementById("confirmBtn");
 
+  // Roulette modal
   const rouletteModal = document.getElementById("rouletteModal");
   const rouletteWheel = document.getElementById("rouletteWheel");
   const rouletteOutcome = document.getElementById("rouletteOutcome");
   const rouletteOkBtn = document.getElementById("rouletteOkBtn");
 
+  // Final modal
   const finalModal = document.getElementById("finalModal");
   const finalScoreEl = document.getElementById("finalScore");
   const playAgainBtn = document.getElementById("playAgainBtn");
 
-  // Baraja / cartas
+  // Deck
   const deckBtn = document.getElementById("deckBtn");
   const deckModal = document.getElementById("deckModal");
   const closeDeckBtn = document.getElementById("closeDeckBtn");
   const deckGrid = document.getElementById("deckGrid");
 
-  // Popup info carta
+  // Card info popup
   const cardInfoModal = document.getElementById("cardInfoModal");
   const cardInfoTitle = document.getElementById("cardInfoTitle");
   const cardInfoText = document.getElementById("cardInfoText");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
-  // Habilidad
+  // Special modal
   const specialModal = document.getElementById("specialModal");
   const closeSpecialBtn = document.getElementById("closeSpecialBtn");
   const specialCancelBtn = document.getElementById("specialCancelBtn");
@@ -99,19 +105,19 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
 
-  // Zona no-spawn
+  // No-spawn rect
   let noSpawnRect = null;
 
-  // Carrusel de selección jugador
+  // Selector jugador
   const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
     { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" }
   ];
   let avatarIndex = 0;
 
-  // Habilidad especial
-  let specialUsed = false;   // consumida
-  let specialArmed = false;  // lista para elegir misión
+  // Habilidad
+  let specialUsed = false;
+  let specialArmed = false;
 
   // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -135,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  // Pausar/reanudar TODAS las misiones mientras un modal esté abierto
   function setGlobalPause(paused) {
     const now = performance.now();
     for (const st of activePoints.values()) {
@@ -171,7 +176,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function computeNoSpawnRect() {
-    if (!playerImg) return;
     const mapRect = mapEl.getBoundingClientRect();
     const imgRect = playerImg.getBoundingClientRect();
     if (!mapRect.width || !imgRect.width) return;
@@ -192,25 +196,23 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
-  /* -----------------------------
-     SELECTOR (carrusel) + animación
-  ------------------------------ */
+  /* -------- INTRO -> START -------- */
+  function goToStartScreen() {
+    introScreen.classList.add("hidden");
+    startScreen.classList.remove("hidden");
+  }
+
+  /* -------- SELECTOR (animación) -------- */
   function animateCarousel(direction) {
     const dx = direction > 0 ? 24 : -24;
 
     avatarPreviewImg.animate(
-      [
-        { transform: `translateX(${dx}px)`, opacity: 0 },
-        { transform: "translateX(0px)", opacity: 1 }
-      ],
+      [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
       { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
     );
 
     avatarPreviewName.animate(
-      [
-        { transform: `translateX(${dx}px)`, opacity: 0 },
-        { transform: "translateX(0px)", opacity: 1 }
-      ],
+      [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
       { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
     );
   }
@@ -221,10 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
 
-    if (dot0 && dot1) {
-      dot0.classList.toggle("active", avatarIndex === 0);
-      dot1.classList.toggle("active", avatarIndex === 1);
-    }
+    dot0?.classList.toggle("active", avatarIndex === 0);
+    dot1?.classList.toggle("active", avatarIndex === 1);
 
     if (direction !== 0) animateCarousel(direction);
   }
@@ -249,7 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     startScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
 
-    // reset habilidad por partida
     specialUsed = false;
     specialArmed = false;
     setSpecialArmedUI(false);
@@ -265,9 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
-  /* -----------------------------
-     GAME CORE
-  ------------------------------ */
+  /* -------- GAME CORE -------- */
   function createMissionPoint(mission) {
     const point = document.createElement("div");
     point.className = "point";
@@ -294,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pointEl: point,
       remainingMs: MISSION_LIFETIME_MS,
       lastTickAt: performance.now(),
-      phase: "spawned", // spawned | executing | ready
+      phase: "spawned",
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
@@ -318,7 +315,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
     if (completedMissionIds.has(missionId)) return;
 
-    // habilidad armada: completa automáticamente con ruleta verde
+    // Habilidad armada
     if (specialArmed && !specialUsed) {
       specialUsed = true;
       specialArmed = false;
@@ -335,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function removePoint(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    if (st.pointEl?.parentNode) st.pointEl.parentNode.removeChild(st.pointEl);
+    st.pointEl?.parentNode?.removeChild(st.pointEl);
     activePoints.delete(missionId);
   }
 
@@ -350,10 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
     completedMissionIds.add(missionId);
     setProgress();
     setScore(SCORE_LOSE);
-
     releaseCharsForMission(missionId);
     removePoint(missionId);
-
     if (completedMissionIds.size >= MISSIONS.length) finishGame();
   }
 
@@ -362,38 +357,32 @@ document.addEventListener("DOMContentLoaded", () => {
     completedMissionIds.add(missionId);
     setProgress();
     setScore(SCORE_WIN);
-
     releaseCharsForMission(missionId);
     removePoint(missionId);
-
     if (completedMissionIds.size >= MISSIONS.length) finishGame();
   }
 
   function scheduleNextSpawn() {
-    if (spawnTimer) clearTimeout(spawnTimer);
+    clearTimeout(spawnTimer);
     if (pendingMissions.length === 0) return;
 
-    const delay = randInt(SPAWN_MIN_DELAY_MS, SPAWN_MAX_DELAY_MS);
     spawnTimer = setTimeout(() => {
       if (completedMissionIds.size >= MISSIONS.length) return;
-
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
       createMissionPoint(mission);
-
       scheduleNextSpawn();
-    }, delay);
+    }, randInt(SPAWN_MIN_DELAY_MS, SPAWN_MAX_DELAY_MS));
   }
 
   function startLifeTicker() {
-    if (lifeTicker) clearInterval(lifeTicker);
+    clearInterval(lifeTicker);
 
     lifeTicker = setInterval(() => {
       const now = performance.now();
 
       for (const [mid, st] of activePoints.entries()) {
         if (st.isPaused) { st.lastTickAt = now; continue; }
-
         const dt = now - st.lastTickAt;
         st.lastTickAt = now;
 
@@ -416,15 +405,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 200);
   }
 
-  /* -----------------------------
-     MISSION MODAL
-  ------------------------------ */
+  /* -------- MISSION MODAL -------- */
   function openMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
 
     setGlobalPause(true);
-
     currentMissionId = missionId;
     selectedCharIds = new Set();
 
@@ -447,19 +433,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCharacters() {
     charactersGrid.innerHTML = "";
-
     CHARACTERS.forEach(ch => {
       const locked = lockedCharIds.has(ch.id);
-
       const card = document.createElement("div");
       card.className = "char" + (locked ? " locked" : "");
-      card.dataset.id = ch.id;
-
       card.innerHTML = `
         <div><div class="name">${ch.name}</div></div>
         <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
       `;
-
       card.addEventListener("click", () => {
         if (locked) {
           pickHint.textContent = "Ese personaje está ocupado en otra misión.";
@@ -468,7 +449,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         toggleCharacter(ch.id, card);
       });
-
       charactersGrid.appendChild(card);
     });
   }
@@ -514,13 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(missionModal);
     currentMissionId = null;
     selectedCharIds = new Set();
-
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  /* -----------------------------
-     ROULETTE
-  ------------------------------ */
+  /* -------- ROULETTE -------- */
   function spinRoulette(chance, onDone, forcedWin = null) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
@@ -557,8 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
     spinRoulette(st.chance ?? 0.10, (win) => {
       rouletteOkBtn.onclick = () => {
         hideModal(rouletteModal);
-        if (win) winMission(missionId);
-        else failMission(missionId);
+        win ? winMission(missionId) : failMission(missionId);
         rouletteOkBtn.disabled = true;
         if (!isAnyModalOpen()) setGlobalPause(false);
       };
@@ -582,9 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
   }
 
-  /* -----------------------------
-     DECK + popup
-  ------------------------------ */
+  /* -------- DECK -------- */
   function openCardInfo(cardData){
     setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
@@ -599,13 +573,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function openDeck() {
     setGlobalPause(true);
     deckGrid.innerHTML = "";
-
     CARDS.forEach(cardData => {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "deck-card";
-      card.setAttribute("aria-label", `Carta: ${cardData.name}`);
-
       card.innerHTML = `
         <img src="${cardData.img}" alt="${cardData.name}" />
         <div class="deck-card-name">
@@ -613,11 +584,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="pill">Ver</span>
         </div>
       `;
-
       card.addEventListener("click", () => openCardInfo(cardData));
       deckGrid.appendChild(card);
     });
-
     showModal(deckModal);
   }
 
@@ -626,16 +595,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  /* -----------------------------
-     HABILIDAD ESPECIAL
-  ------------------------------ */
+  /* -------- HABILIDAD -------- */
   function openSpecialModal() {
     if (specialUsed) return;
     setGlobalPause(true);
     showModal(specialModal);
   }
 
-  function closeSpecialModal() {
+  function cancelSpecial() {
+    specialArmed = false;
+    setSpecialArmedUI(false);
     hideModal(specialModal);
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
@@ -644,21 +613,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (specialUsed) return;
     specialArmed = true;
     setSpecialArmedUI(true);
-    closeSpecialModal();
+    hideModal(specialModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  function cancelSpecial() {
-    specialArmed = false;
-    setSpecialArmedUI(false);
-    closeSpecialModal();
-  }
-
-  /* -----------------------------
-     FINAL / RESET
-  ------------------------------ */
+  /* -------- FINAL / RESET -------- */
   function finishGame() {
-    if (lifeTicker) clearInterval(lifeTicker);
-    if (spawnTimer) clearTimeout(spawnTimer);
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
     finalScoreEl.textContent = String(score);
     setGlobalPause(true);
     showModal(finalModal);
@@ -672,12 +634,11 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(cardInfoModal);
     hideModal(specialModal);
 
-    if (lifeTicker) clearInterval(lifeTicker);
-    if (spawnTimer) clearTimeout(spawnTimer);
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
 
-    for (const [mid] of activePoints.entries()) {
-      const st = activePoints.get(mid);
-      if (st?.pointEl?.parentNode) st.pointEl.parentNode.removeChild(st.pointEl);
+    for (const st of activePoints.values()) {
+      st.pointEl?.parentNode?.removeChild(st.pointEl);
     }
 
     score = 0;
@@ -699,14 +660,19 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
-  /* -----------------------------
-     EVENTS
-  ------------------------------ */
-  // carrusel
+  /* -------- EVENTS -------- */
+  // Intro -> Start
+  introStartBtn.addEventListener("click", goToStartScreen);
+
+  // Carrusel
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
   document.addEventListener("keydown", (e) => {
+    if (!introScreen.classList.contains("hidden")) {
+      if (e.key === "Enter") goToStartScreen();
+      return;
+    }
     if (!startScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevAvatar();
       if (e.key === "ArrowRight") nextAvatar();
@@ -715,39 +681,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", startGame);
 
-  // click personaje -> habilidad
+  // Click personaje -> habilidad
   playerImg.addEventListener("click", openSpecialModal);
 
-  // misión
+  // Misión
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
 
-  // final
-  playAgainBtn.addEventListener("click", () => {
-    resetGame();
-    gameRoot.classList.add("hidden");
-    startScreen.classList.remove("hidden");
-    avatarIndex = 0;
-    renderAvatarCarousel(0);
-  });
-
-  // deck
+  // Deck
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
-  // popup carta
+  // Card info
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
   cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
 
-  // habilidad modal
+  // Habilidad modal
   closeSpecialBtn.addEventListener("click", cancelSpecial);
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
-  // resize
+  // Final
+  playAgainBtn.addEventListener("click", () => {
+    resetGame();
+    gameRoot.classList.add("hidden");
+    // volvemos a la intro (como “home”)
+    introScreen.classList.remove("hidden");
+    startScreen.classList.add("hidden");
+    avatarIndex = 0;
+    renderAvatarCarousel(0);
+  });
+
+  // Resize (no-spawn)
   window.addEventListener("resize", () => {
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
