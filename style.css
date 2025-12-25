@@ -635,3 +635,39 @@ img{ max-width:100%; height:auto; }
 @media (max-width: 520px){
   .team-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+/* ✅ SOLO en la pantalla de equipo permitimos scroll (interno) */
+#teamScreen{
+  height: 100%;
+  /* el section sigue centrado como start */
+}
+
+/* la tarjeta se hace “contenedor” con alto limitado */
+#teamScreen .start-card{
+  max-height: calc(var(--appH) - 36px); /* 18px padding arriba + 18px abajo del section */
+  max-height: calc(100dvh - 36px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* el scroll va dentro del grid */
+}
+
+/* ✅ el grid es el que scrollea */
+#teamGrid{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px; /* para que no “pise” la barra */
+}
+
+/* opcional: que el botón confirmar quede siempre visible */
+#teamScreen .modal-actions{
+  flex: 0 0 auto;
+}
+
+/* un pelín más cómodo en móvil */
+@media (max-width: 520px){
+  #teamScreen .start-card{
+    max-height: calc(var(--appH) - 28px);
+    max-height: calc(100dvh - 28px);
+  }
+}
