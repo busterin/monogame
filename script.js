@@ -53,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextAvatarBtn = document.getElementById("nextAvatarBtn");
   const avatarPreviewImg = document.getElementById("avatarPreviewImg");
   const avatarPreviewName = document.getElementById("avatarPreviewName");
+
+  // Dots (en tu HTML solo hay 2; con 4 avatares no los usamos)
   const dot0 = document.getElementById("dot0");
   const dot1 = document.getElementById("dot1");
 
@@ -115,10 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let noSpawnRect = null;
 
-  const AVATARS = [
+  // ✅ Avatares del selector (4) ordenados alfabéticamente por nombre
+  let AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
-    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" }
-  ];
+    { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
+    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
+    { key: "maider", name: "Maider", src: "images/maider1.PNG", alt: "Maider" }
+  ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+
   let avatarIndex = 0;
 
   let specialUsed = false;
@@ -221,8 +227,11 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
-    dot0?.classList.toggle("active", avatarIndex === 0);
-    dot1?.classList.toggle("active", avatarIndex === 1);
+
+    // ✅ tus dots eran 2; los apagamos para no liar con 4 personajes
+    if (dot0) dot0.classList.remove("active");
+    if (dot1) dot1.classList.remove("active");
+
     if (direction !== 0) animateCarousel(direction);
   }
 
@@ -669,6 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", startGame);
 
+  // ✅ habilidad especial vale para todos (Buster/Celia/Castri/Maider) porque depende del playerImg
   playerImg.addEventListener("click", openSpecialModal);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
