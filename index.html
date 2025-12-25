@@ -9,27 +9,29 @@
 <body>
   <div class="app">
 
-    <!-- PANTALLA INICIO (selector) -->
+    <!-- PANTALLA INICIO (selector con flechas) -->
     <section id="startScreen" class="start">
       <div class="start-card">
         <div class="start-title">Elige tu personaje</div>
-        <div class="start-subtitle">Selecciona uno para comenzar.</div>
+        <div class="start-subtitle">Usa las flechas para cambiar y pulsa Comenzar.</div>
 
-        <div class="start-grid">
-          <button class="start-choice" type="button" data-avatar="buster">
-            <img src="images/buster1.PNG" alt="Buster" />
-            <div class="start-name">Buster</div>
-          </button>
+        <div class="carousel">
+          <button id="prevAvatarBtn" class="carousel-btn" type="button" aria-label="Anterior">‹</button>
 
-          <button class="start-choice" type="button" data-avatar="celia">
-            <img src="images/celia1.PNG" alt="Celia" />
-            <div class="start-name">Celia</div>
-          </button>
+          <div class="carousel-center">
+            <img id="avatarPreviewImg" class="carousel-img" src="images/buster1.PNG" alt="Buster" />
+            <div id="avatarPreviewName" class="carousel-name">Buster</div>
+          </div>
+
+          <button id="nextAvatarBtn" class="carousel-btn" type="button" aria-label="Siguiente">›</button>
         </div>
 
-        <div id="startHint" class="start-hint">Selecciona un personaje.</div>
+        <div class="carousel-dots" aria-hidden="true">
+          <span id="dot0" class="dot-indicator active"></span>
+          <span id="dot1" class="dot-indicator"></span>
+        </div>
 
-        <button id="startBtn" class="btn start-btn" type="button" disabled>Comenzar</button>
+        <button id="startBtn" class="btn start-btn" type="button">Comenzar</button>
       </div>
     </section>
 
@@ -158,12 +160,18 @@
       <div class="divider"></div>
 
       <div id="deckGrid" class="deck-grid"></div>
+    </div>
+  </div>
 
-      <div class="divider"></div>
-
-      <div class="section">
-        <div class="section-title">Detalle</div>
-        <div id="deckDetail" class="deck-detail">Selecciona una carta.</div>
+  <!-- POPUP INFO CARTA -->
+  <div id="cardInfoModal" class="modal" aria-hidden="true">
+    <div class="modal-card modal-card-small" role="dialog" aria-modal="true" aria-labelledby="cardInfoTitle">
+      <div class="modal-head">
+        <div>
+          <div id="cardInfoTitle" class="modal-title">Carta</div>
+          <div id="cardInfoText" class="modal-text">Prueba</div>
+        </div>
+        <button id="closeCardInfoBtn" class="icon-btn" type="button" aria-label="Cerrar">✕</button>
       </div>
     </div>
   </div>
