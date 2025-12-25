@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
     { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
     { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
-    { key: "maider", name: "Maider", src: "images/maider1.PNG", alt: "Maider" }
+    { key: "maider", name: "Maider", src: "images/maider1.jpg", alt: "Maider" }
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   let avatarIndex = 0;
