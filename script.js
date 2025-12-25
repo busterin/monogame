@@ -17,8 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const MISSION_LIFETIME_MS = 2 * 60 * 1000;
   const EXECUTION_TIME_MS = 60 * 1000;
 
-  // Nueva probabilidad por personaje:
-  // +80% si coincide tag, +10% si no
+  // Probabilidad por personaje (suma):
   const MATCH_ADD = 0.80;
   const NO_MATCH_ADD = 0.10;
 
@@ -28,9 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const SPAWN_MIN_DELAY_MS = 1200;
   const SPAWN_MAX_DELAY_MS = 6000;
 
-  // DOM
+  // DOM (start)
+  const startScreen = document.getElementById("startScreen");
+  const startChoices = Array.from(document.querySelectorAll(".start-choice"));
+  const startBtn = document.getElementById("startBtn");
+  const startHint = document.getElementById("startHint");
+
+  const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
-  const busterImg = document.getElementById("busterImg");
+  const playerImg = document.getElementById("playerImg");
+
+  // DOM (game)
   const progressEl = document.getElementById("progress");
 
   const missionModal = document.getElementById("missionModal");
@@ -70,7 +77,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
 
+  // Zona prohibida para spawn: caja del personaje en el mapa
   let noSpawnRect = null;
+
+  // Selección jugador
+  let selectedAvatarKey = null;
+  const AVATARS = {
+    buster: { src: "images/buster1.PNG", alt: "Buster" },
+    celia: { src: "images/celia1.PNG", alt: "Celia" }
+  };
 
   // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -95,11 +110,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return tag;
   }
 
-  // NUEVA prob: suma por personaje (máx 100%)
   function computeChance(mission, chosenIds) {
     const missionTag = normalizeTag(mission.internalTag);
-
     let p = 0;
+
     for (const cid of chosenIds) {
       const ch = CHARACTERS.find(c => c.id === cid);
       if (!ch) continue;
@@ -110,9 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function computeNoSpawnRect() {
-    if (!busterImg) return;
+    if (!playerImg) return;
     const mapRect = mapEl.getBoundingClientRect();
-    const imgRect = busterImg.getBoundingClientRect();
+    const imgRect = playerImg.getBoundingClientRect();
     if (!mapRect.width || !imgRect.width) return;
 
     const margin = 14;
@@ -131,7 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
-  // Puntos
+  // -----------------------------
+  // GAME CORE
+  // -----------------------------
   function createMissionPoint(mission) {
     const point = document.createElement("div");
     point.className = "point";
@@ -158,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pointEl: point,
       remainingMs: MISSION_LIFETIME_MS,
       lastTickAt: performance.now(),
-      phase: "spawned", // spawned | executing | ready
+      phase: "spawned",
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
@@ -226,7 +242,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (completedMissionIds.size >= MISSIONS.length) finishGame();
   }
 
-  // Spawn
   function scheduleNextSpawn() {
     if (spawnTimer) clearTimeout(spawnTimer);
     if (pendingMissions.length === 0) return;
@@ -243,7 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, delay);
   }
 
-  // Ticker
   function startLifeTicker() {
     if (lifeTicker) clearInterval(lifeTicker);
 
@@ -276,7 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 200);
   }
 
-  // Modal misión
   function openMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
@@ -324,10 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
       card.dataset.id = ch.id;
 
       card.innerHTML = `
-        <div>
-          <div class="name">${ch.name}</div>
-          <div class="tag">${ch.internalTag}</div>
-        </div>
+        <div><div class="name">${ch.name}</div></div>
         <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
       `;
 
@@ -361,7 +371,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Confirmar -> ejecutar 1 min
   function confirmMission() {
     const st = currentMissionId ? activePoints.get(currentMissionId) : null;
     if (!st) return;
@@ -391,7 +400,6 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCharIds = new Set();
   }
 
-  // Ruleta ponderada
   function spinRoulette(chance, onDone) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
@@ -434,7 +442,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Baraja
   function openDeck() {
     deckDetail.textContent = "Selecciona un personaje.";
     deckGrid.innerHTML = "";
@@ -443,9 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = "char";
       card.innerHTML = `
-        <div>
-          <div class="name">${ch.name}</div>
-        </div>
+        <div><div class="name">${ch.name}</div></div>
         <div class="pill">Ver</div>
       `;
       card.addEventListener("click", () => { deckDetail.textContent = "Prueba"; });
@@ -454,10 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showModal(deckModal);
   }
-
   function closeDeck() { hideModal(deckModal); }
 
-  // Final / reset
   function finishGame() {
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
@@ -491,27 +494,77 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
+  // -----------------------------
+  // START SCREEN LOGIC
+  // -----------------------------
+  function selectAvatar(key) {
+    selectedAvatarKey = key;
+
+    startChoices.forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.avatar === key);
+    });
+
+    startHint.textContent = "";
+    startBtn.disabled = false;
+  }
+
+  function applySelectedAvatarToMap() {
+    const chosen = AVATARS[selectedAvatarKey] || AVATARS.buster;
+    playerImg.src = chosen.src;
+    playerImg.alt = chosen.alt;
+  }
+
+  function startGame() {
+    if (!selectedAvatarKey) {
+      startHint.textContent = "Selecciona un personaje.";
+      startBtn.disabled = true;
+      return;
+    }
+
+    // Muestra juego
+    startScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+
+    applySelectedAvatarToMap();
+
+    // Calcular zona no-spawn cuando la imagen esté lista
+    const refreshNoSpawn = () => computeNoSpawnRect();
+    if (playerImg.complete) refreshNoSpawn();
+    else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
+
+    // Arranca mecánicas
+    setProgress();
+    startLifeTicker();
+    scheduleNextSpawn();
+  }
+
   // Events
+  startChoices.forEach(btn => {
+    btn.addEventListener("click", () => selectAvatar(btn.dataset.avatar));
+  });
+  startBtn.addEventListener("click", startGame);
+
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
 
-  playAgainBtn.addEventListener("click", resetGame);
+  playAgainBtn.addEventListener("click", () => {
+    // Reinicia juego y vuelve a pantalla de selección
+    resetGame();
+    gameRoot.classList.add("hidden");
+    startScreen.classList.remove("hidden");
+    startBtn.disabled = true;
+    startHint.textContent = "Selecciona un personaje.";
+    selectedAvatarKey = null;
+    startChoices.forEach(b => b.classList.remove("selected"));
+  });
 
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
-  // no-spawn rect
-  function refreshNoSpawn() { computeNoSpawnRect(); }
-  window.addEventListener("resize", refreshNoSpawn);
-  if (busterImg) {
-    if (busterImg.complete) refreshNoSpawn();
-    else busterImg.addEventListener("load", refreshNoSpawn);
-  }
-
-  // Init
-  setProgress();
-  startLifeTicker();
-  scheduleNextSpawn();
+  // Resize -> recalcular no-spawn
+  window.addEventListener("resize", () => {
+    if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
+  });
 });
