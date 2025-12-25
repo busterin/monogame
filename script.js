@@ -20,152 +20,92 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // -------------------------
   // ✅ MISIONES (15 total)
-  // - 10: Producción / Museos / Picofino / Educación
-  // - 5: Programación
   // -------------------------
   const MISSIONS = [
     // EDUCACIÓN (3)
-    {
-      id: "m1",
-      title: "Taller Exprés",
-      internalTag: "Educación",
-      text: "Hay un grupo listo para empezar y falta ajustar la dinámica. Envía a alguien que domine actividades educativas y manejo de tiempos."
-    },
-    {
-      id: "m2",
-      title: "Guía de Actividad",
-      internalTag: "Educación",
-      text: "Necesitamos una mini-guía clara para que cualquiera pueda dirigir la sesión. Envía a quien sepa convertir ideas en instrucciones sencillas."
-    },
-    {
-      id: "m3",
-      title: "Plan de Aula",
-      internalTag: "Educación",
-      text: "Han cambiado el perfil del público a última hora. Envía a alguien que sepa adaptar contenidos y mantener a la gente enganchada."
-    },
+    { id: "m1", title: "Taller Exprés", internalTag: "Educación", text: "Hay un grupo listo para empezar y falta ajustar la dinámica. Envía a alguien que domine actividades educativas y manejo de tiempos." },
+    { id: "m2", title: "Guía de Actividad", internalTag: "Educación", text: "Necesitamos una mini-guía clara para que cualquiera pueda dirigir la sesión. Envía a quien sepa convertir ideas en instrucciones sencillas." },
+    { id: "m3", title: "Plan de Aula", internalTag: "Educación", text: "Han cambiado el perfil del público a última hora. Envía a alguien que sepa adaptar contenidos y mantener a la gente enganchada." },
 
     // PICOFINO (3)
-    {
-      id: "m4",
-      title: "Incidencia de Operativa",
-      internalTag: "Picofino",
-      text: "Se ha bloqueado una tarea del día a día y hay que desbloquearla sin montar lío. Envía a quien conozca bien cómo se mueve Picofino."
-    },
-    {
-      id: "m5",
-      title: "Pedido Descuadrado",
-      internalTag: "Picofino",
-      text: "Un pedido no cuadra con lo esperado y el equipo necesita una mano para reordenar prioridades y resolverlo rápido."
-    },
-    {
-      id: "m6",
-      title: "Turno Improvisado",
-      internalTag: "Picofino",
-      text: "Falta gente en un turno clave. Envía a quien sepa reorganizar recursos y apagar fuegos sin que se note."
-    },
+    { id: "m4", title: "Incidencia de Operativa", internalTag: "Picofino", text: "Se ha bloqueado una tarea del día a día y hay que desbloquearla sin montar lío. Envía a quien conozca bien cómo se mueve Picofino." },
+    { id: "m5", title: "Pedido Descuadrado", internalTag: "Picofino", text: "Un pedido no cuadra con lo esperado y el equipo necesita una mano para reordenar prioridades y resolverlo rápido." },
+    { id: "m6", title: "Turno Improvisado", internalTag: "Picofino", text: "Falta gente en un turno clave. Envía a quien sepa reorganizar recursos y apagar fuegos sin que se note." },
 
     // PRODUCCIÓN (3)
-    {
-      id: "m7",
-      title: "Montaje a Contrarreloj",
-      internalTag: "Producción",
-      text: "Hay que montar algo rápido y bien, cuidando detalles y materiales. Envía a quien sepa de logística, montaje y ejecución."
-    },
-    {
-      id: "m8",
-      title: "Materiales Perdidos",
-      internalTag: "Producción",
-      text: "Falta material y nadie sabe dónde está. Envía a quien tenga control de inventario y sepa coordinar búsquedas sin caos."
-    },
-    {
-      id: "m9",
-      title: "Plan B de Producción",
-      internalTag: "Producción",
-      text: "El plan inicial se ha caído. Necesitamos a alguien que replantee el paso a paso y saque la tarea adelante con recursos limitados."
-    },
+    { id: "m7", title: "Montaje a Contrarreloj", internalTag: "Producción", text: "Hay que montar algo rápido y bien, cuidando detalles y materiales. Envía a quien sepa de logística, montaje y ejecución." },
+    { id: "m8", title: "Materiales Perdidos", internalTag: "Producción", text: "Falta material y nadie sabe dónde está. Envía a quien tenga control de inventario y sepa coordinar búsquedas sin caos." },
+    { id: "m9", title: "Plan B de Producción", internalTag: "Producción", text: "El plan inicial se ha caído. Necesitamos a alguien que replantee el paso a paso y saque la tarea adelante con recursos limitados." },
 
     // MUSEOS (1)
-    {
-      id: "m10",
-      title: "Ajuste de Sala",
-      internalTag: "Museos",
-      text: "La sala necesita un cambio fino: recorrido, cartelas y flujo de personas. Envía a quien sepa de exposición y criterios de museo."
-    },
+    { id: "m10", title: "Ajuste de Sala", internalTag: "Museos", text: "La sala necesita un cambio fino: recorrido, cartelas y flujo de personas. Envía a quien sepa de exposición y criterios de museo." },
 
     // PROGRAMACIÓN (5)
-    {
-      id: "m11",
-      title: "Bug Fantasma",
-      internalTag: "Programación",
-      text: "Algo falla solo a veces y nadie logra reproducirlo. Envía a quien sepa investigar errores raros y aislar la causa."
-    },
-    {
-      id: "m12",
-      title: "Integración Rápida",
-      internalTag: "Programación",
-      text: "Hay que conectar dos piezas que no se hablan bien. Envía a quien se maneje con integraciones y soluciones limpias."
-    },
-    {
-      id: "m13",
-      title: "Optimizar Carga",
-      internalTag: "Programación",
-      text: "En móviles tarda demasiado en cargar. Envía a quien sepa mejorar rendimiento sin romper nada."
-    },
-    {
-      id: "m14",
-      title: "Botón Rebelde",
-      internalTag: "Programación",
-      text: "Un botón deja de responder en ciertos casos. Envía a quien tenga mano con eventos, estados y depuración."
-    },
-    {
-      id: "m15",
-      title: "Refactor Discreto",
-      internalTag: "Programación",
-      text: "Hay código que funciona pero es un lío. Envía a quien sepa ordenar y dejarlo mantenible sin cambiar el comportamiento."
-    }
+    { id: "m11", title: "Bug Fantasma", internalTag: "Programación", text: "Algo falla solo a veces y nadie logra reproducirlo. Envía a quien sepa investigar errores raros y aislar la causa." },
+    { id: "m12", title: "Integración Rápida", internalTag: "Programación", text: "Hay que conectar dos piezas que no se hablan bien. Envía a quien se maneje con integraciones y soluciones limpias." },
+    { id: "m13", title: "Optimizar Carga", internalTag: "Programación", text: "En móviles tarda demasiado en cargar. Envía a quien sepa mejorar rendimiento sin romper nada." },
+    { id: "m14", title: "Botón Rebelde", internalTag: "Programación", text: "Un botón deja de responder en ciertos casos. Envía a quien tenga mano con eventos, estados y depuración." },
+    { id: "m15", title: "Refactor Discreto", internalTag: "Programación", text: "Hay código que funciona pero es un lío. Envía a quien sepa ordenar y dejarlo mantenible sin cambiar el comportamiento." }
   ];
 
   // -------------------------
   // ✅ PERSONAJES (múltiples etiquetas)
   // -------------------------
   const CHARACTERS = [
-    { id: "c1", name: "Castri", tags: ["Producción", "Museos"] }, // +Museos
-    { id: "c2", name: "Maider", tags: ["Museos", "Producción"] }, // +Producción
-    { id: "c3", name: "Celia", tags: ["Picofino"] },
-    { id: "c4", name: "Buster", tags: ["Educación"] },
-    { id: "c5", name: "Dre", tags: ["Programación"] }, // nuevo
-    { id: "c6", name: "Voby", tags: ["Producción"] } // nuevo
+    { id: "c1",  name: "Castri",  tags: ["Producción", "Museos"] },
+    { id: "c2",  name: "Maider",  tags: ["Museos", "Producción"] },
+    { id: "c3",  name: "Celia",   tags: ["Picofino"] },
+    { id: "c4",  name: "Buster",  tags: ["Educación"] },
+    { id: "c5",  name: "Dre",     tags: ["Programación"] },
+
+    // ✅ Nuevos
+    { id: "c6",  name: "Genio",   tags: ["Producción"] },
+    { id: "c7",  name: "Lorena",  tags: ["Diseño"] },
+    { id: "c8",  name: "Alba",    tags: ["Producción"] },
+    { id: "c9",  name: "María M", tags: ["Producción"] },
+    { id: "c10", name: "Voby",    tags: ["Producción"] }
   ];
 
-  // Cartas (sin tocar para no depender de imágenes nuevas)
+  // ✅ Cartas (todas)
   const CARDS = [
-    { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Prueba" },
-    { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Prueba" },
-    { id: "card_maider", name: "Maider", img: "images/maider.JPEG", text: "Prueba" },
-    { id: "card_celia", name: "Celia", img: "images/celia.JPEG", text: "Prueba" }
+    { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Carta de apoyo: aporta claridad y estructura." },
+    { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Carta de apoyo: coordinación y ejecución con criterio." },
+    { id: "card_maider", name: "Maider", img: "images/maider.JPEG", text: "Carta de apoyo: mirada de sala y ajuste fino." },
+    { id: "card_celia",  name: "Celia",  img: "images/celia.JPEG",  text: "Carta de apoyo: resuelve operativa con rapidez." },
+    { id: "card_dre",    name: "Dre",    img: "images/dre.JPEG",    text: "Carta de apoyo: detecta fallos y los arregla." },
+
+    // ✅ Nuevos (nombres de archivo según tu mensaje)
+    { id: "card_genio",  name: "Genio",  img: "images/genio.JPEG",  text: "Carta de apoyo: saca tareas adelante con recursos limitados." },
+    { id: "card_lorena", name: "Lorena", img: "images/lorena.JPEG", text: "Carta de apoyo: mejora presentación, orden y estética." },
+    { id: "card_alba",   name: "Alba",   img: "images/alba.JPEG",   text: "Carta de apoyo: ejecución rápida y organizada." },
+    { id: "card_mariam", name: "María M",img: "images/mariam.JPEG", text: "Carta de apoyo: coordina y aterriza lo pendiente." },
+    { id: "card_voby",   name: "Voby",   img: "images/voby.JPEG",   text: "Carta de apoyo: empuja producción y logística." }
   ];
 
   // -------------------------
-  // Balance de tiempos (amarillo 1 min como antes)
+  // Balance de tiempos
   // -------------------------
-  const MISSION_LIFETIME_MS = 2 * 60 * 1000; // tiempo en rojo antes de fallar
-  const EXECUTION_TIME_MS = 60 * 1000; // ✅ 1 min en amarillo antes de "ready"
+  const MISSION_LIFETIME_MS = 2 * 60 * 1000;
+  const EXECUTION_TIME_MS = 60 * 1000;
 
   const MATCH_ADD = 0.8;
   const NO_MATCH_ADD = 0.1;
 
-  // ✅ scoring por “misiones completadas”
+  // scoring por misiones completadas
   const SCORE_WIN = 1;
   const SCORE_LOSE = 0;
 
   const SPAWN_MIN_DELAY_MS = 900;
   const SPAWN_MAX_DELAY_MS = 3800;
 
+  // -------------------------
+  // DOM
+  // -------------------------
   // Intro
   const introScreen = document.getElementById("introScreen");
   const introStartBtn = document.getElementById("introStartBtn");
 
-  // Start
+  // Start (avatar)
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
 
@@ -175,6 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const avatarPreviewName = document.getElementById("avatarPreviewName");
   const dot0 = document.getElementById("dot0");
   const dot1 = document.getElementById("dot1");
+
+  // ✅ Team screen
+  const teamScreen = document.getElementById("teamScreen");
+  const teamGrid = document.getElementById("teamGrid");
+  const teamCountEl = document.getElementById("teamCount");
+  const teamHint = document.getElementById("teamHint");
+  const teamConfirmBtn = document.getElementById("teamConfirmBtn");
 
   // Game
   const gameRoot = document.getElementById("gameRoot");
@@ -220,7 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const specialCancelBtn = document.getElementById("specialCancelBtn");
   const specialAcceptBtn = document.getElementById("specialAcceptBtn");
 
+  // -------------------------
   // Estado
+  // -------------------------
   let score = 0;
   let pendingMissions = [...MISSIONS];
   let activePoints = new Map();
@@ -235,11 +184,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let noSpawnRect = null;
 
-  // Avatares (alfabético)
+  // ✅ Equipo (6 cartas)
+  let selectedTeamCardIds = new Set(); // ids de CARDS
+  let availableCharNames = new Set();  // nombres seleccionados para misiones
+  let availableCharacters = [];        // subset de CHARACTERS
+  let availableCards = [];             // subset de CARDS
+
+  // Avatares (alfabético) - mapa
   const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
     { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
-    { key: "celia", name: "Celia", src: "images/celia1.PNG", alt: "Celia" },
+    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
     { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider" }
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
@@ -252,23 +207,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
 
-  function setScore(delta) {
-    score += delta;
-  }
+  function setScore(delta) { score += delta; }
+  function setProgress() { progressEl.textContent = String(completedMissionIds.size); }
 
-  // ✅ SOLO NÚMERO (sin /X)
-  function setProgress() {
-    progressEl.textContent = String(completedMissionIds.size);
-  }
-
-  function showModal(el) {
-    el.classList.add("show");
-    el.setAttribute("aria-hidden", "false");
-  }
-  function hideModal(el) {
-    el.classList.remove("show");
-    el.setAttribute("aria-hidden", "true");
-  }
+  function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
+  function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
 
   function isAnyModalOpen() {
     return (
@@ -300,21 +243,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (t === "producción" || t === "produccion") return "Producción";
     if (t === "picofino") return "Picofino";
     if (t === "programación" || t === "programacion") return "Programación";
+    if (t === "diseño" || t === "diseno") return "Diseño";
     return tag;
   }
 
-  // ✅ ahora soporta múltiples etiquetas por personaje
   function computeChance(mission, chosenIds) {
     const missionTag = normalizeTag(mission.internalTag);
     let p = 0;
 
     for (const cid of chosenIds) {
-      const ch = CHARACTERS.find((c) => c.id === cid);
+      const ch = availableCharacters.find(c => c.id === cid);
       if (!ch) continue;
 
       const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
       const match = tags.map(normalizeTag).includes(missionTag);
-
       p += match ? MATCH_ADD : NO_MATCH_ADD;
     }
     return clamp(p, 0, 1);
@@ -327,31 +269,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const margin = 14;
     noSpawnRect = {
-      left: imgRect.left - mapRect.left - margin,
-      top: imgRect.top - mapRect.top - margin,
-      right: imgRect.right - mapRect.left + margin,
-      bottom: imgRect.bottom - mapRect.top + margin
+      left: (imgRect.left - mapRect.left) - margin,
+      top: (imgRect.top - mapRect.top) - margin,
+      right: (imgRect.right - mapRect.left) + margin,
+      bottom: (imgRect.bottom - mapRect.top) + margin
     };
   }
 
   function pointWouldOverlapNoSpawn(xPx, yPx) {
     if (!noSpawnRect) return false;
     const r = 14;
-    const left = xPx - r,
-      right = xPx + r,
-      top = yPx - r,
-      bottom = yPx + r;
-    return !(
-      right < noSpawnRect.left ||
-      left > noSpawnRect.right ||
-      bottom < noSpawnRect.top ||
-      top > noSpawnRect.bottom
-    );
+    const left = xPx - r, right = xPx + r, top = yPx - r, bottom = yPx + r;
+    return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
+  // -------------------------
+  // Flow screens
+  // -------------------------
   function goToStartScreen() {
     introScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
+    teamScreen.classList.add("hidden");
+    gameRoot.classList.add("hidden");
+  }
+
+  function goToTeamScreen() {
+    startScreen.classList.add("hidden");
+    teamScreen.classList.remove("hidden");
+    renderTeamSelection();
   }
 
   function animateCarousel(direction) {
@@ -387,7 +332,79 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // ✅ Normalización automática de tamaño en el MAPA
+  // ✅ Team selection (6 cartas)
+  // -------------------------
+  function updateTeamUI() {
+    const n = selectedTeamCardIds.size;
+    teamCountEl.textContent = String(n);
+    teamConfirmBtn.disabled = n !== 6;
+
+    if (n < 6) teamHint.textContent = "Elige 6 cartas para continuar.";
+    else if (n === 6) teamHint.textContent = "Perfecto. Confirma el equipo para empezar.";
+    else teamHint.textContent = "Máximo 6 cartas.";
+  }
+
+  function renderTeamSelection() {
+    teamGrid.innerHTML = "";
+
+    // Orden por nombre
+    const cardsSorted = [...CARDS].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
+
+    cardsSorted.forEach(cardData => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "team-card" + (selectedTeamCardIds.has(cardData.id) ? " selected" : "");
+      btn.innerHTML = `
+        <img src="${cardData.img}" alt="${cardData.name}" />
+        <div class="team-card-name">
+          <span>${cardData.name}</span>
+          <span class="pill">${selectedTeamCardIds.has(cardData.id) ? "Elegida" : "Elegir"}</span>
+        </div>
+      `;
+
+      btn.addEventListener("click", () => {
+        const isSelected = selectedTeamCardIds.has(cardData.id);
+
+        if (isSelected) {
+          selectedTeamCardIds.delete(cardData.id);
+        } else {
+          if (selectedTeamCardIds.size >= 6) return; // cap duro
+          selectedTeamCardIds.add(cardData.id);
+        }
+        renderTeamSelection();
+        updateTeamUI();
+      });
+
+      teamGrid.appendChild(btn);
+    });
+
+    updateTeamUI();
+  }
+
+  function commitTeamAndStart() {
+    // names from selected cards
+    const selectedNames = new Set(
+      [...selectedTeamCardIds]
+        .map(cid => CARDS.find(c => c.id === cid))
+        .filter(Boolean)
+        .map(c => c.name)
+    );
+
+    availableCharNames = selectedNames;
+
+    availableCharacters = CHARACTERS.filter(ch => selectedNames.has(ch.name));
+    availableCards = CARDS.filter(c => selectedNames.has(c.name));
+
+    // seguridad: si por lo que sea quedan menos de 6, no arrancar
+    if (availableCharacters.length !== 6 || availableCards.length !== 6) return;
+
+    // ir al juego
+    teamScreen.classList.add("hidden");
+    startGame();
+  }
+
+  // -------------------------
+  // ✅ Normalización tamaño sprite en mapa (igual que antes)
   // -------------------------
   const spriteBoxCache = new Map();
   let referenceVisibleHeightPx = null;
@@ -419,10 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-    let minX = width,
-      minY = height,
-      maxX = -1,
-      maxY = -1;
+    let minX = width, minY = height, maxX = -1, maxY = -1;
     const A_TH = 16;
 
     for (let y = 0; y < height; y++) {
@@ -444,8 +458,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return out;
     }
 
-    const boxW = maxX - minX + 1;
-    const boxH = maxY - minY + 1;
+    const boxW = (maxX - minX + 1);
+    const boxH = (maxY - minY + 1);
 
     const out = { w: img.naturalWidth, h: img.naturalHeight, boxH, boxW };
     spriteBoxCache.set(src, out);
@@ -480,19 +494,15 @@ document.addEventListener("DOMContentLoaded", () => {
       await applyNormalizedMapSizeFor(a.src);
       computeNoSpawnRect();
     } else {
-      playerImg.addEventListener(
-        "load",
-        async () => {
-          await applyNormalizedMapSizeFor(a.src);
-          computeNoSpawnRect();
-        },
-        { once: true }
-      );
+      playerImg.addEventListener("load", async () => {
+        await applyNormalizedMapSizeFor(a.src);
+        computeNoSpawnRect();
+      }, { once: true });
     }
   }
 
   // -------------------------
-  // ✅ FIN POR TIEMPO (sin mostrar cronómetro)
+  // ✅ Reloj (oculto)
   // -------------------------
   function startGameClock() {
     clearInterval(gameClockTimer);
@@ -522,8 +532,10 @@ document.addEventListener("DOMContentLoaded", () => {
     finishGame();
   }
 
+  // -------------------------
+  // Game start
+  // -------------------------
   function startGame() {
-    startScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
 
     specialUsed = false;
@@ -538,7 +550,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setProgress();
 
-    // ✅ orden correcto: primero reloj, luego spawns
     startGameClock();
     startLifeTicker();
     scheduleNextSpawn();
@@ -553,8 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const mapRect = mapEl.getBoundingClientRect();
 
-    let xPct = 50,
-      yPct = 50;
+    let xPct = 50, yPct = 50;
     for (let i = 0; i < 40; i++) {
       xPct = rand(8, 92);
       yPct = rand(10, 86);
@@ -618,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function releaseCharsForMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
-    for (const cid of st.assignedCharIds || []) lockedCharIds.delete(cid);
+    for (const cid of (st.assignedCharIds || [])) lockedCharIds.delete(cid);
   }
 
   function failMission(missionId) {
@@ -639,14 +649,10 @@ document.addEventListener("DOMContentLoaded", () => {
     removePoint(missionId);
   }
 
-  // ✅ Spawn aleatorio, pero nunca más de 10 puntos simultáneos
   function scheduleNextSpawn() {
     clearTimeout(spawnTimer);
-
-    // si el juego ya terminó por tiempo, no spawnear
     if (gameClockTimer === null) return;
 
-    // cap: si hay 10 puntos, esperamos y reintentamos
     if (activePoints.size >= MAX_ACTIVE_POINTS) {
       spawnTimer = setTimeout(() => scheduleNextSpawn(), 800);
       return;
@@ -656,12 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     spawnTimer = setTimeout(() => {
       if (gameClockTimer === null) return;
-
-      // doble-check
-      if (activePoints.size >= MAX_ACTIVE_POINTS) {
-        scheduleNextSpawn();
-        return;
-      }
+      if (activePoints.size >= MAX_ACTIVE_POINTS) { scheduleNextSpawn(); return; }
 
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
@@ -677,10 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = performance.now();
 
       for (const [mid, st] of activePoints.entries()) {
-        if (st.isPaused) {
-          st.lastTickAt = now;
-          continue;
-        }
+        if (st.isPaused) { st.lastTickAt = now; continue; }
         const dt = now - st.lastTickAt;
         st.lastTickAt = now;
 
@@ -730,14 +728,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderCharacters() {
     charactersGrid.innerHTML = "";
-    CHARACTERS.forEach((ch) => {
+
+    availableCharacters.forEach(ch => {
       const locked = lockedCharIds.has(ch.id);
+
       const card = document.createElement("div");
       card.className = "char" + (locked ? " locked" : "");
       card.innerHTML = `
         <div><div class="name">${ch.name}</div></div>
         <div class="pill">${locked ? "Ocupado" : "Elegir"}</div>
       `;
+
       card.addEventListener("click", () => {
         if (locked) {
           pickHint.textContent = "Ese personaje está ocupado en otra misión.";
@@ -746,6 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         toggleCharacter(ch.id, card);
       });
+
       charactersGrid.appendChild(card);
     });
   }
@@ -785,7 +787,7 @@ document.addEventListener("DOMContentLoaded", () => {
     st.phase = "executing";
     st.execRemainingMs = EXECUTION_TIME_MS;
     st.lastTickAt = performance.now();
-    st.pointEl.classList.add("assigned"); // ✅ amarillo
+    st.pointEl.classList.add("assigned");
     st.pointEl.classList.remove("ready");
 
     hideModal(missionModal);
@@ -812,7 +814,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     setTimeout(() => {
-      const win = forcedWin === null ? Math.random() < chance : forcedWin;
+      const win = (forcedWin === null) ? (Math.random() < chance) : forcedWin;
       rouletteOutcome.textContent = win ? "✅ ¡Éxito!" : "❌ Fallo";
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
@@ -827,7 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setGlobalPause(true);
     showModal(rouletteModal);
 
-    spinRoulette(st.chance ?? 0.1, (win) => {
+    spinRoulette(st.chance ?? 0.10, (win) => {
       rouletteOkBtn.onclick = () => {
         hideModal(rouletteModal);
         win ? winMission(missionId) : failMission(missionId);
@@ -844,27 +846,23 @@ document.addEventListener("DOMContentLoaded", () => {
     setGlobalPause(true);
     showModal(rouletteModal);
 
-    spinRoulette(
-      1,
-      () => {
-        rouletteOkBtn.onclick = () => {
-          hideModal(rouletteModal);
-          winMission(missionId);
-          rouletteOkBtn.disabled = true;
-          if (!isAnyModalOpen()) setGlobalPause(false);
-        };
-      },
-      true
-    );
+    spinRoulette(1, () => {
+      rouletteOkBtn.onclick = () => {
+        hideModal(rouletteModal);
+        winMission(missionId);
+        rouletteOkBtn.disabled = true;
+        if (!isAnyModalOpen()) setGlobalPause(false);
+      };
+    }, true);
   }
 
-  function openCardInfo(cardData) {
+  function openCardInfo(cardData){
     setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
     cardInfoText.textContent = cardData.text;
     showModal(cardInfoModal);
   }
-  function closeCardInfo() {
+  function closeCardInfo(){
     hideModal(cardInfoModal);
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
@@ -872,7 +870,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function openDeck() {
     setGlobalPause(true);
     deckGrid.innerHTML = "";
-    CARDS.forEach((cardData) => {
+
+    availableCards.forEach(cardData => {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "deck-card";
@@ -886,6 +885,7 @@ document.addEventListener("DOMContentLoaded", () => {
       card.addEventListener("click", () => openCardInfo(cardData));
       deckGrid.appendChild(card);
     });
+
     showModal(deckModal);
   }
 
@@ -939,7 +939,9 @@ document.addEventListener("DOMContentLoaded", () => {
     clearInterval(gameClockTimer);
     gameClockTimer = null;
 
-    for (const st of activePoints.values()) st.pointEl?.parentNode?.removeChild(st.pointEl);
+    for (const st of activePoints.values()) {
+      st.pointEl?.parentNode?.removeChild(st.pointEl);
+    }
 
     score = 0;
     pendingMissions = [...MISSIONS];
@@ -957,13 +959,14 @@ document.addEventListener("DOMContentLoaded", () => {
     setProgress();
     setGlobalPause(false);
 
-    // ✅ orden correcto también aquí
     startGameClock();
     startLifeTicker();
     scheduleNextSpawn();
   }
 
+  // -------------------------
   // Events
+  // -------------------------
   introStartBtn.addEventListener("click", goToStartScreen);
 
   prevAvatarBtn.addEventListener("click", prevAvatar);
@@ -980,42 +983,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  startBtn.addEventListener("click", startGame);
+  // ✅ ahora Start -> Team screen
+  startBtn.addEventListener("click", () => {
+    // reset selección de equipo al entrar
+    selectedTeamCardIds = new Set();
+    goToTeamScreen();
+  });
+
+  teamConfirmBtn.addEventListener("click", () => {
+    if (selectedTeamCardIds.size !== 6) return;
+    commitTeamAndStart();
+  });
 
   playerImg.addEventListener("click", openSpecialModal);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
-  missionModal.addEventListener("click", (e) => {
-    if (e.target === missionModal) closeMissionModal();
-  });
+  missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
 
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
-  deckModal.addEventListener("click", (e) => {
-    if (e.target === deckModal) closeDeck();
-  });
+  deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
-  cardInfoModal.addEventListener("click", (e) => {
-    if (e.target === cardInfoModal) closeCardInfo();
-  });
+  cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
 
   closeSpecialBtn.addEventListener("click", cancelSpecial);
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
-  specialModal.addEventListener("click", (e) => {
-    if (e.target === specialModal) cancelSpecial();
-  });
+  specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
   playAgainBtn.addEventListener("click", () => {
-    clearInterval(gameClockTimer);
-    gameClockTimer = null;
-
     resetGame();
     gameRoot.classList.add("hidden");
     introScreen.classList.remove("hidden");
     startScreen.classList.add("hidden");
+    teamScreen.classList.add("hidden");
     avatarIndex = 0;
     renderAvatarCarousel(0);
   });
@@ -1028,18 +1031,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // init
   renderAvatarCarousel(0);
 
-  // fija referencia tamaño
+  // fija referencia tamaño (si el src inicial es Buster)
   if (playerImg?.getAttribute("src")) {
     const src = playerImg.getAttribute("src");
-    playerImg.addEventListener(
-      "load",
-      async () => {
-        try {
-          referenceVisibleHeightPx = null;
-          await applyNormalizedMapSizeFor(src);
-        } catch {}
-      },
-      { once: true }
-    );
+    playerImg.addEventListener("load", async () => {
+      try {
+        referenceVisibleHeightPx = null;
+        await applyNormalizedMapSizeFor(src);
+      } catch {}
+    }, { once: true });
   }
 });
