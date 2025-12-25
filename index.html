@@ -9,19 +9,23 @@
 <body>
   <div class="app">
 
-    <!-- INTRO (sin recuadro) -->
+    <!-- INTRO -->
     <section id="introScreen" class="intro">
       <div class="intro-content">
         <div class="intro-title">MONO GAME</div>
         <img class="intro-logo" src="images/Mono.png" alt="Mono Gnomo" />
-        <button id="introStartBtn" class="btn intro-btn" type="button">COMENZAR</button>
+
+        <div class="intro-actions">
+          <button id="introStartBtn" class="btn intro-btn" type="button">COMENZAR</button>
+          <button id="introInfoBtn" class="icon-btn intro-info-btn" type="button" aria-label="Info">ℹ️</button>
+        </div>
       </div>
     </section>
 
     <!-- SELECTOR AVATAR -->
     <section id="startScreen" class="start hidden">
       <div class="start-card">
-        <div class="start-title">Elige tu personaje</div>
+        <div class="start-title">Elige tu avatar</div>
         <div class="start-subtitle">Usa las flechas para cambiar y pulsa Comenzar.</div>
 
         <div class="carousel">
@@ -44,21 +48,20 @@
       </div>
     </section>
 
-    <!-- ✅ NUEVA PANTALLA: ELIGE 6 CARTAS -->
+    <!-- SELECCIÓN EQUIPO (6) -->
     <section id="teamScreen" class="start hidden">
       <div class="start-card">
-        <div class="start-title">Elige tu equipo</div>
-        <div class="start-subtitle">Selecciona exactamente <b>6</b> cartas. Esas serán las disponibles en las misiones y en la baraja.</div>
+        <div class="start-title">Selecciona 6 personajes. Estos serán los disponibles para superar las misiones.</div>
 
         <div class="team-top">
-          <div class="team-counter">Seleccionadas: <span id="teamCount">0</span>/6</div>
-          <div id="teamHint" class="hint">Elige 6 cartas para continuar.</div>
+          <div class="team-counter"><b>Seleccionados</b>: <span id="teamCount">0</span>/6</div>
+          <div id="teamHint" class="hint">Elige 6 personajes para continuar.</div>
         </div>
 
         <div id="teamGrid" class="team-grid"></div>
 
         <div class="modal-actions end" style="margin-top:12px;">
-          <button id="teamConfirmBtn" class="btn" type="button" disabled>Confirmar equipo</button>
+          <button id="teamConfirmBtn" class="btn" type="button" disabled>Confirmar</button>
         </div>
       </div>
     </section>
@@ -91,6 +94,25 @@
           <img id="playerImg" class="buster-img" src="images/buster1.PNG" alt="Personaje seleccionado" />
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- MODAL INFO (inicio) -->
+  <div id="infoModal" class="modal" aria-hidden="true">
+    <div class="modal-card modal-card-small" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <div class="modal-head">
+        <div>
+          <div id="infoTitle" class="modal-title">Cómo jugar</div>
+          <div class="modal-text">
+            Elige tu avatar y selecciona <b>6</b> personajes para tu equipo.<br/>
+            Durante <b>5 minutos</b> aparecerán misiones en el mapa.<br/>
+            Asigna <b>1 o 2</b> personajes: la misión se pondrá <b>amarilla</b> y se resolverá en <b>1 minuto</b>.<br/>
+            Cuantas más misiones completes, <b>mayor será tu puntuación</b>.<br/><br/>
+            <b>Habilidad especial:</b> puedes tocar tu avatar para activarla (solo 1 vez) y completar una misión automáticamente.
+          </div>
+        </div>
+        <button id="closeInfoBtn" class="icon-btn" type="button" aria-label="Cerrar">✕</button>
+      </div>
     </div>
   </div>
 
