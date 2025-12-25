@@ -45,7 +45,7 @@
         </div>
 
         <div class="hud">
-          <button id="deckBtn" class="hud-icon-btn" type="button" aria-label="Ver personajes">
+          <button id="deckBtn" class="hud-icon-btn" type="button" aria-label="Ver cartas">
             <span class="deck-icon" aria-hidden="true">🃏</span>
           </button>
 
@@ -58,7 +58,6 @@
 
       <main class="stage">
         <div id="map" class="map" aria-label="Mapa del juego">
-          <!-- Se sustituye dinámicamente según selección -->
           <img id="playerImg" class="buster-img" src="images/buster1.PNG" alt="Personaje seleccionado" />
         </div>
       </main>
@@ -145,26 +144,26 @@
     </div>
   </div>
 
-  <!-- MODAL BARAJA / PERSONAJES -->
+  <!-- MODAL BARAJA / CARTAS -->
   <div id="deckModal" class="modal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deckTitle">
       <div class="modal-head">
         <div>
-          <div id="deckTitle" class="modal-title">Personajes</div>
-          <div class="modal-text">Pulsa un personaje para ver su info.</div>
+          <div id="deckTitle" class="modal-title">Cartas</div>
+          <div class="modal-text">Pulsa una carta para ver su info.</div>
         </div>
         <button id="closeDeckBtn" class="icon-btn" type="button" aria-label="Cerrar">✕</button>
       </div>
 
       <div class="divider"></div>
 
-      <div id="deckGrid" class="grid"></div>
+      <div id="deckGrid" class="deck-grid"></div>
 
       <div class="divider"></div>
 
       <div class="section">
         <div class="section-title">Detalle</div>
-        <div id="deckDetail" class="deck-detail">Selecciona un personaje.</div>
+        <div id="deckDetail" class="deck-detail">Selecciona una carta.</div>
       </div>
     </div>
   </div>
