@@ -8,20 +8,134 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", setAppHeightVar);
   window.addEventListener("orientationchange", setAppHeightVar);
 
+  // -------------------------
+  // ✅ DURACIÓN DE PARTIDA (oculta)
+  // -------------------------
+  const GAME_DURATION_MS = 5 * 60 * 1000; // 5 minutos
+  let gameEndAt = null;
+  let gameClockTimer = null;
+
+  // -------------------------
+  // ✅ MISIONES (15 total)
+  // - 10: Producción / Museos / Picofino / Educación
+  // - 5: Programación
+  // Textos: “se entiende a quién enviar” pero sin decir el tag explícito.
+  // -------------------------
   const MISSIONS = [
-    { id: "m1", title: "Escuela de la Energía", internalTag: "Educación", text: "Misión: Activar una dinámica educativa y coordinar recursos para un taller." },
-    { id: "m2", title: "Picofino", internalTag: "Picofino", text: "Misión: Resolver una necesidad operativa de Picofino con recursos limitados." },
-    { id: "m3", title: "Batería Alta", internalTag: "Producción", text: "Misión: Preparar la exposición “Batería Alta” coordinando montaje, logística y recursos disponibles." },
-    { id: "m4", title: "Expo Melquíades Álvarez", internalTag: "Museo", text: "Misión: Preparar una acción cultural en la expo y gestionar imprevistos." }
+    // EDUCACIÓN (3)
+    {
+      id: "m1",
+      title: "Taller Exprés",
+      internalTag: "Educación",
+      text: "Hay un grupo listo para empezar y falta ajustar la dinámica. Envía a alguien que domine actividades educativas y manejo de tiempos."
+    },
+    {
+      id: "m2",
+      title: "Guía de Actividad",
+      internalTag: "Educación",
+      text: "Necesitamos una mini-guía clara para que cualquiera pueda dirigir la sesión. Envía a quien sepa convertir ideas en instrucciones sencillas."
+    },
+    {
+      id: "m3",
+      title: "Plan de Aula",
+      internalTag: "Educación",
+      text: "Han cambiado el perfil del público a última hora. Envía a alguien que sepa adaptar contenidos y mantener a la gente enganchada."
+    },
+
+    // PICOFINO (3)
+    {
+      id: "m4",
+      title: "Incidencia de Operativa",
+      internalTag: "Picofino",
+      text: "Se ha bloqueado una tarea del día a día y hay que desbloquearla sin montar lío. Envía a quien conozca bien cómo se mueve Picofino."
+    },
+    {
+      id: "m5",
+      title: "Pedido Descuadrado",
+      internalTag: "Picofino",
+      text: "Un pedido no cuadra con lo esperado y el equipo necesita una mano para reordenar prioridades y resolverlo rápido."
+    },
+    {
+      id: "m6",
+      title: "Turno Improvisado",
+      internalTag: "Picofino",
+      text: "Falta gente en un turno clave. Envía a quien sepa reorganizar recursos y apagar fuegos sin que se note."
+    },
+
+    // PRODUCCIÓN (3)
+    {
+      id: "m7",
+      title: "Montaje a Contrarreloj",
+      internalTag: "Producción",
+      text: "Hay que montar algo rápido y bien, cuidando detalles y materiales. Envía a quien sepa de logística, montaje y ejecución."
+    },
+    {
+      id: "m8",
+      title: "Materiales Perdidos",
+      internalTag: "Producción",
+      text: "Falta material y nadie sabe dónde está. Envía a quien tenga control de inventario y sepa coordinar búsquedas sin caos."
+    },
+    {
+      id: "m9",
+      title: "Plan B de Producción",
+      internalTag: "Producción",
+      text: "El plan inicial se ha caído. Necesitamos a alguien que replantee el paso a paso y saque la tarea adelante con recursos limitados."
+    },
+
+    // MUSEOS (1)
+    {
+      id: "m10",
+      title: "Ajuste de Sala",
+      internalTag: "Museos",
+      text: "La sala necesita un cambio fino: recorrido, cartelas y flujo de personas. Envía a quien sepa de exposición y criterios de museo."
+    },
+
+    // PROGRAMACIÓN (5)
+    {
+      id: "m11",
+      title: "Bug Fantasma",
+      internalTag: "Programación",
+      text: "Algo falla solo a veces y nadie logra reproducirlo. Envía a quien sepa investigar errores raros y aislar la causa."
+    },
+    {
+      id: "m12",
+      title: "Integración Rápida",
+      internalTag: "Programación",
+      text: "Hay que conectar dos piezas que no se hablan bien. Envía a quien se maneje con integraciones y soluciones limpias."
+    },
+    {
+      id: "m13",
+      title: "Optimizar Carga",
+      internalTag: "Programación",
+      text: "En móviles tarda demasiado en cargar. Envía a quien sepa mejorar rendimiento sin romper nada."
+    },
+    {
+      id: "m14",
+      title: "Botón Rebelde",
+      internalTag: "Programación",
+      text: "Un botón deja de responder en ciertos casos. Envía a quien tenga mano con eventos, estados y depuración."
+    },
+    {
+      id: "m15",
+      title: "Refactor Discreto",
+      internalTag: "Programación",
+      text: "Hay código que funciona pero es un lío. Envía a quien sepa ordenar y dejarlo mantenible sin cambiar el comportamiento."
+    }
   ];
 
+  // -------------------------
+  // ✅ PERSONAJES (múltiples etiquetas)
+  // -------------------------
   const CHARACTERS = [
-    { id: "c1", name: "Castri", internalTag: "Producción" },
-    { id: "c2", name: "Maider", internalTag: "Museo" },
-    { id: "c3", name: "Celia", internalTag: "Picofino" },
-    { id: "c4", name: "Buster", internalTag: "Educación" }
+    { id: "c1", name: "Castri", tags: ["Producción", "Museos"] },      // +Museos
+    { id: "c2", name: "Maider", tags: ["Museos", "Producción"] },      // +Producción
+    { id: "c3", name: "Celia", tags: ["Picofino"] },
+    { id: "c4", name: "Buster", tags: ["Educación"] },
+    { id: "c5", name: "Dre", tags: ["Programación"] },                // nuevo
+    { id: "c6", name: "Voby", tags: ["Producción"] }                   // nuevo
   ];
 
+  // Cartas (las dejo como estaban para no depender de imágenes nuevas)
   const CARDS = [
     { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Prueba" },
     { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Prueba" },
@@ -29,17 +143,23 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_celia", name: "Celia", img: "images/celia.JPEG", text: "Prueba" }
   ];
 
+  // -------------------------
+  // Balance de tiempos (ajustable)
+  // -------------------------
   const MISSION_LIFETIME_MS = 2 * 60 * 1000;
   const EXECUTION_TIME_MS = 60 * 1000;
 
   const MATCH_ADD = 0.80;
   const NO_MATCH_ADD = 0.10;
 
-  const SCORE_WIN = 15;
-  const SCORE_LOSE = -5;
+  // ✅ Puntuación acorde a “cuántas misiones te da tiempo a hacer”
+  // - éxito suma 1
+  // - fallo suma 0
+  const SCORE_WIN = 1;
+  const SCORE_LOSE = 0;
 
-  const SPAWN_MIN_DELAY_MS = 1200;
-  const SPAWN_MAX_DELAY_MS = 6000;
+  const SPAWN_MIN_DELAY_MS = 900;
+  const SPAWN_MAX_DELAY_MS = 3800;
 
   // Intro
   const introScreen = document.getElementById("introScreen");
@@ -134,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setScore(delta) { score += delta; }
 
-  // ✅ SOLO NÚMERO (sin /4)
+  // ✅ SOLO NÚMERO (sin /X)
   function setProgress() { progressEl.textContent = String(completedMissionIds.size); }
 
   function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
@@ -165,20 +285,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function normalizeTag(tag) {
     const t = String(tag || "").trim().toLowerCase();
-    if (t === "museos" || t === "museo") return "Museo";
+    if (t === "museos" || t === "museo") return "Museos";
     if (t === "educación" || t === "educacion") return "Educación";
     if (t === "producción" || t === "produccion") return "Producción";
     if (t === "picofino") return "Picofino";
+    if (t === "programación" || t === "programacion") return "Programación";
     return tag;
   }
 
+  // ✅ ahora soporta múltiples etiquetas por personaje
   function computeChance(mission, chosenIds) {
     const missionTag = normalizeTag(mission.internalTag);
     let p = 0;
+
     for (const cid of chosenIds) {
       const ch = CHARACTERS.find(c => c.id === cid);
       if (!ch) continue;
-      const match = normalizeTag(ch.internalTag) === missionTag;
+
+      const tags = Array.isArray(ch.tags) ? ch.tags : [ch.tags];
+      const match = tags.map(normalizeTag).includes(missionTag);
+
       p += match ? MATCH_ADD : NO_MATCH_ADD;
     }
     return clamp(p, 0, 1);
@@ -243,12 +369,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // ✅ Normalización automática de tamaño en el MAPA
-  // - Analiza PNG con transparencia y calcula bbox del contenido real
-  // - Ajusta el ancho del <img> para que el alto visible sea como Buster
+  // ✅ Normalización automática de tamaño en el MAPA (igual que antes)
   // -------------------------
   const spriteBoxCache = new Map(); // src -> { w, h, boxH, boxW }
-  let referenceVisibleHeightPx = null; // altura visible de Buster en px con width actual
+  let referenceVisibleHeightPx = null;
 
   async function getSpriteBox(src) {
     if (spriteBoxCache.has(src)) return spriteBoxCache.get(src);
@@ -262,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
       img.onerror = () => rej(new Error("No se pudo cargar " + src));
     });
 
-    // Si no hay alpha (jpg), no podemos calcular bbox fiable -> fallback
     const hasPngAlpha = /\.png$/i.test(src) || /\.webp$/i.test(src);
     if (!hasPngAlpha) {
       const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
@@ -279,7 +402,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     let minX = width, minY = height, maxX = -1, maxY = -1;
-    // threshold alpha para ignorar ruido
     const A_TH = 16;
 
     for (let y = 0; y < height; y++) {
@@ -295,7 +417,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // Si no encontramos alpha (imagen “sólida”), fallback
     if (maxX < 0 || maxY < 0) {
       const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
       spriteBoxCache.set(src, out);
@@ -311,28 +432,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function applyNormalizedMapSizeFor(src) {
-    // anchor: usa el width CSS actual como base
     const baseWidthPx = parseFloat(getComputedStyle(playerImg).width) || 120;
-
     const box = await getSpriteBox(src);
 
-    // visibleHeight con baseWidth
     const visibleHeight = box.boxH * (baseWidthPx / box.w);
 
     if (referenceVisibleHeightPx == null) {
-      // primera vez: fijamos referencia con Buster
       referenceVisibleHeightPx = visibleHeight;
-      playerImg.style.width = ""; // deja el ancho por CSS
+      playerImg.style.width = "";
       return;
     }
 
-    // Calcula el ancho necesario para igualar altura visible a la referencia
     const neededWidth = referenceVisibleHeightPx * (box.w / box.boxH);
-
-    // Limita por seguridad (evita tamaños absurdos si una imagen viene rara)
     const clamped = Math.max(baseWidthPx * 0.75, Math.min(neededWidth, baseWidthPx * 1.8));
-
-    // Aplica solo si difiere, para evitar “temblores”
     playerImg.style.width = `${clamped}px`;
   }
 
@@ -341,10 +453,8 @@ document.addEventListener("DOMContentLoaded", () => {
     playerImg.src = a.src;
     playerImg.alt = a.alt;
 
-    // reset: vuelve al ancho CSS (por si el anterior estaba ajustado)
     playerImg.style.width = "";
 
-    // Ajuste cuando cargue
     if (playerImg.complete) {
       await applyNormalizedMapSizeFor(a.src);
       computeNoSpawnRect();
@@ -354,6 +464,42 @@ document.addEventListener("DOMContentLoaded", () => {
         computeNoSpawnRect();
       }, { once: true });
     }
+  }
+
+  // -------------------------
+  // ✅ FIN POR TIEMPO (sin mostrar cronómetro)
+  // -------------------------
+  function startGameClock() {
+    clearInterval(gameClockTimer);
+    gameEndAt = performance.now() + GAME_DURATION_MS;
+
+    gameClockTimer = setInterval(() => {
+      const now = performance.now();
+      if (now >= gameEndAt) {
+        endGameByTime();
+      }
+    }, 250);
+  }
+
+  function endGameByTime() {
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
+    // Detenemos spawns / ticker y cerramos modales en curso
+    clearInterval(lifeTicker);
+    clearTimeout(spawnTimer);
+
+    // Si hay ruleta abierta, desactivamos el botón para evitar estados raros
+    rouletteOkBtn.disabled = true;
+
+    // Cierra modales abiertos (si alguno está)
+    hideModal(missionModal);
+    hideModal(rouletteModal);
+    hideModal(deckModal);
+    hideModal(cardInfoModal);
+    hideModal(specialModal);
+
+    finishGame();
   }
 
   function startGame() {
@@ -373,6 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setProgress();
     startLifeTicker();
     scheduleNextSpawn();
+    startGameClock(); // ✅ arranca los 5 minutos ocultos
   }
 
   function createMissionPoint(mission) {
@@ -458,7 +605,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setScore(SCORE_LOSE);
     releaseCharsForMission(missionId);
     removePoint(missionId);
-    if (completedMissionIds.size >= MISSIONS.length) finishGame();
+    // ✅ ya no forzamos “fin por completar todas” porque el objetivo es el tiempo
   }
 
   function winMission(missionId) {
@@ -468,15 +615,17 @@ document.addEventListener("DOMContentLoaded", () => {
     setScore(SCORE_WIN);
     releaseCharsForMission(missionId);
     removePoint(missionId);
-    if (completedMissionIds.size >= MISSIONS.length) finishGame();
   }
 
   function scheduleNextSpawn() {
     clearTimeout(spawnTimer);
-    if (pendingMissions.length === 0) return;
+    if (pendingMissions.length === 0) {
+      // Si se acaban, reponemos para que siga habiendo puntos durante los 5 min
+      pendingMissions = [...MISSIONS];
+    }
 
     spawnTimer = setTimeout(() => {
-      if (completedMissionIds.size >= MISSIONS.length) return;
+      if (gameClockTimer === null) return; // si el juego ya terminó por tiempo, no spawnear
       const idx = randInt(0, pendingMissions.length - 1);
       const mission = pendingMissions.splice(idx, 1)[0];
       createMissionPoint(mission);
@@ -725,6 +874,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function finishGame() {
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
     finalScoreEl.textContent = String(score);
     setGlobalPause(true);
     showModal(finalModal);
@@ -740,6 +892,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
 
     for (const st of activePoints.values()) {
       st.pointEl?.parentNode?.removeChild(st.pointEl);
@@ -762,6 +916,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setGlobalPause(false);
     startLifeTicker();
     scheduleNextSpawn();
+    startGameClock();
   }
 
   // Events
@@ -802,6 +957,11 @@ document.addEventListener("DOMContentLoaded", () => {
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
   playAgainBtn.addEventListener("click", () => {
+    // al volver al intro, paramos el reloj (y el juego se reiniciará al comenzar)
+    clearInterval(gameClockTimer);
+    gameClockTimer = null;
+
+    // reset completo (mantiene lógica)
     resetGame();
     gameRoot.classList.add("hidden");
     introScreen.classList.remove("hidden");
@@ -818,8 +978,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // init
   renderAvatarCarousel(0);
 
-  // ✅ fija referencia de tamaño en cuanto podamos (con el Buster del inicio)
-  // (si el src inicial es Buster, esto deja todo listo para el resto)
+  // fija referencia tamaño (si el src inicial es Buster, deja listo para el resto)
   if (playerImg?.getAttribute("src")) {
     const src = playerImg.getAttribute("src");
     playerImg.addEventListener("load", async () => {
