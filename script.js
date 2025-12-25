@@ -53,8 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextAvatarBtn = document.getElementById("nextAvatarBtn");
   const avatarPreviewImg = document.getElementById("avatarPreviewImg");
   const avatarPreviewName = document.getElementById("avatarPreviewName");
-
-  // Dots (en tu HTML solo hay 2; con 4 avatares no los usamos)
   const dot0 = document.getElementById("dot0");
   const dot1 = document.getElementById("dot1");
 
@@ -117,12 +115,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let noSpawnRect = null;
 
-  // ✅ Avatares del selector (4) ordenados alfabéticamente por nombre
-  let AVATARS = [
+  // ✅ selector por orden alfabético (y Maider usa .png + scale solo para mapa)
+  const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
-    { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
     { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
-    { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider" }
+    { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
+    { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider", scale: 1.18 }
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   let avatarIndex = 0;
@@ -135,7 +133,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
 
   function setScore(delta) { score += delta; }
-  function setProgress() { progressEl.textContent = `${completedMissionIds.size} / ${MISSIONS.length}`; }
+
+  // ✅ SOLO NÚMERO (sin /4)
+  function setProgress() { progressEl.textContent = String(completedMissionIds.size); }
 
   function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
   function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
@@ -228,9 +228,9 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
 
-    // ✅ tus dots eran 2; los apagamos para no liar con 4 personajes
-    if (dot0) dot0.classList.remove("active");
-    if (dot1) dot1.classList.remove("active");
+    // dots: si hay más de 2 avatares, solo activamos para 0/1 (sin tocar HTML)
+    dot0?.classList.toggle("active", avatarIndex === 0);
+    dot1?.classList.toggle("active", avatarIndex === 1);
 
     if (direction !== 0) animateCarousel(direction);
   }
@@ -249,6 +249,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const a = AVATARS[avatarIndex];
     playerImg.src = a.src;
     playerImg.alt = a.alt;
+
+    // ✅ SOLO: ajustar Maider para que ocupe como los demás en el mapa
+    const s = (a && typeof a.scale === "number" && isFinite(a.scale)) ? a.scale : 1;
+    playerImg.style.setProperty("--playerScale", String(s));
   }
 
   function startGame() {
@@ -678,7 +682,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", startGame);
 
-  // ✅ habilidad especial vale para todos (Buster/Celia/Castri/Maider) porque depende del playerImg
   playerImg.addEventListener("click", openSpecialModal);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
