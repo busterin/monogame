@@ -2,7 +2,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const MISSIONS = [
     { id: "m1", title: "Escuela de la Energía", internalTag: "Educación", text: "Misión: Activar una dinámica educativa y coordinar recursos para un taller." },
     { id: "m2", title: "Picofino", internalTag: "Picofino", text: "Misión: Resolver una necesidad operativa de Picofino con recursos limitados." },
-    { id: "m3", title: "Batería Alta", internalTag: "Producción", text: "Misión: Optimizar producción para mantener la batería al máximo sin desperdiciar recursos." },
+
+    // ✅ Cambiada: ahora es una exposición
+    { id: "m3", title: "Batería Alta", internalTag: "Producción", text: "Misión: Preparar la exposición “Batería Alta” coordinando montaje, logística y recursos disponibles." },
+
     { id: "m4", title: "Expo Melquíades Álvarez", internalTag: "Museo", text: "Misión: Preparar una acción cultural en la expo y gestionar imprevistos." }
   ];
 
@@ -13,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c4", name: "Buster", internalTag: "Educación" }
   ];
 
-  // Cartas (baraja)
   const CARDS = [
     { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Prueba" },
     { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Prueba" },
@@ -36,9 +38,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // DOM (start)
   const startScreen = document.getElementById("startScreen");
-  const startChoices = Array.from(document.querySelectorAll(".start-choice"));
   const startBtn = document.getElementById("startBtn");
-  const startHint = document.getElementById("startHint");
+
+  const prevAvatarBtn = document.getElementById("prevAvatarBtn");
+  const nextAvatarBtn = document.getElementById("nextAvatarBtn");
+  const avatarPreviewImg = document.getElementById("avatarPreviewImg");
+  const avatarPreviewName = document.getElementById("avatarPreviewName");
+  const dot0 = document.getElementById("dot0");
+  const dot1 = document.getElementById("dot1");
 
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
@@ -64,13 +71,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalScoreEl = document.getElementById("finalScore");
   const playAgainBtn = document.getElementById("playAgainBtn");
 
+  // Baraja / cartas
   const deckBtn = document.getElementById("deckBtn");
   const deckModal = document.getElementById("deckModal");
   const closeDeckBtn = document.getElementById("closeDeckBtn");
   const deckGrid = document.getElementById("deckGrid");
-  const deckDetail = document.getElementById("deckDetail");
 
-  // Estado
+  // Popup info carta
+  const cardInfoModal = document.getElementById("cardInfoModal");
+  const cardInfoTitle = document.getElementById("cardInfoTitle");
+  const cardInfoText = document.getElementById("cardInfoText");
+  const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
+
+  // Estado juego
   let score = 0;
   let pendingMissions = [...MISSIONS];
   let activePoints = new Map();
@@ -84,14 +97,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
 
+  // Zona no-spawn
   let noSpawnRect = null;
 
-  // Selección jugador
-  let selectedAvatarKey = null;
-  const AVATARS = {
-    buster: { src: "images/buster1.PNG", alt: "Buster" },
-    celia: { src: "images/celia1.PNG", alt: "Celia" }
-  };
+  // Carrusel de selección jugador
+  const AVATARS = [
+    { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
+    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" }
+  ];
+  let avatarIndex = 0;
 
   // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -99,10 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
 
   function setScore(delta) { score += delta; }
-
-  function setProgress() {
-    progressEl.textContent = `${completedMissionIds.size} / ${MISSIONS.length}`;
-  }
+  function setProgress() { progressEl.textContent = `${completedMissionIds.size} / ${MISSIONS.length}`; }
 
   function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
   function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
@@ -151,9 +162,56 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
-  // -----------------------------
-  // GAME CORE
-  // -----------------------------
+  /* -----------------------------
+     SELECTOR (carrusel)
+  ------------------------------ */
+  function renderAvatarCarousel() {
+    const a = AVATARS[avatarIndex];
+    avatarPreviewImg.src = a.src;
+    avatarPreviewImg.alt = a.alt;
+    avatarPreviewName.textContent = a.name;
+
+    // dots (2 en este prototipo)
+    if (dot0 && dot1) {
+      dot0.classList.toggle("active", avatarIndex === 0);
+      dot1.classList.toggle("active", avatarIndex === 1);
+    }
+  }
+
+  function prevAvatar() {
+    avatarIndex = (avatarIndex - 1 + AVATARS.length) % AVATARS.length;
+    renderAvatarCarousel();
+  }
+
+  function nextAvatar() {
+    avatarIndex = (avatarIndex + 1) % AVATARS.length;
+    renderAvatarCarousel();
+  }
+
+  function applySelectedAvatarToMap() {
+    const a = AVATARS[avatarIndex];
+    playerImg.src = a.src;
+    playerImg.alt = a.alt;
+  }
+
+  function startGame() {
+    startScreen.classList.add("hidden");
+    gameRoot.classList.remove("hidden");
+
+    applySelectedAvatarToMap();
+
+    const refreshNoSpawn = () => computeNoSpawnRect();
+    if (playerImg.complete) refreshNoSpawn();
+    else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
+
+    setProgress();
+    startLifeTicker();
+    scheduleNextSpawn();
+  }
+
+  /* -----------------------------
+     GAME CORE
+  ------------------------------ */
   function createMissionPoint(mission) {
     const point = document.createElement("div");
     point.className = "point";
@@ -180,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
       pointEl: point,
       remainingMs: MISSION_LIFETIME_MS,
       lastTickAt: performance.now(),
-      phase: "spawned",
+      phase: "spawned", // spawned | executing | ready
       isPaused: false,
       assignedCharIds: new Set(),
       chance: null,
@@ -224,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function failMission(missionId) {
     if (completedMissionIds.has(missionId)) return;
-
     completedMissionIds.add(missionId);
     setProgress();
     setScore(SCORE_LOSE);
@@ -237,7 +294,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function winMission(missionId) {
     if (completedMissionIds.has(missionId)) return;
-
     completedMissionIds.add(missionId);
     setProgress();
     setScore(SCORE_WIN);
@@ -290,12 +346,14 @@ document.addEventListener("DOMContentLoaded", () => {
             st.pointEl.classList.remove("assigned");
             st.pointEl.classList.add("ready");
           }
-          continue;
         }
       }
     }, 200);
   }
 
+  /* -----------------------------
+     MISSION MODAL
+  ------------------------------ */
   function openMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
@@ -406,6 +464,9 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCharIds = new Set();
   }
 
+  /* -----------------------------
+     ROULETTE
+  ------------------------------ */
   function spinRoulette(chance, onDone) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
@@ -448,14 +509,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // -----------------------------
-  // BARAJA: CARTAS
-  // -----------------------------
-  function openDeck() {
-    deckDetail.textContent = "Selecciona una carta.";
-    deckGrid.innerHTML = "";
+  /* -----------------------------
+     DECK (cards) + popup
+  ------------------------------ */
+  function openCardInfo(cardData){
+    cardInfoTitle.textContent = cardData.name;
+    cardInfoText.textContent = cardData.text; // "Prueba"
+    showModal(cardInfoModal);
+  }
+  function closeCardInfo(){ hideModal(cardInfoModal); }
 
-    let selectedCardId = null;
+  function openDeck() {
+    deckGrid.innerHTML = "";
 
     CARDS.forEach(cardData => {
       const card = document.createElement("button");
@@ -471,15 +536,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      card.addEventListener("click", () => {
-        selectedCardId = cardData.id;
-        deckDetail.textContent = cardData.text;
-
-        // marcar selección visual
-        Array.from(deckGrid.querySelectorAll(".deck-card")).forEach(el => el.classList.remove("selected"));
-        card.classList.add("selected");
-      });
-
+      card.addEventListener("click", () => openCardInfo(cardData));
       deckGrid.appendChild(card);
     });
 
@@ -488,7 +545,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeDeck() { hideModal(deckModal); }
 
-  // Final / reset
+  /* -----------------------------
+     FINAL / RESET
+  ------------------------------ */
   function finishGame() {
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
@@ -501,6 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(rouletteModal);
     hideModal(finalModal);
     hideModal(deckModal);
+    hideModal(cardInfoModal);
 
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
@@ -522,45 +582,21 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
-  // -----------------------------
-  // START SCREEN
-  // -----------------------------
-  function selectAvatar(key) {
-    selectedAvatarKey = key;
-    startChoices.forEach(btn => btn.classList.toggle("selected", btn.dataset.avatar === key));
-    startHint.textContent = "";
-    startBtn.disabled = false;
-  }
+  /* -----------------------------
+     EVENTS
+  ------------------------------ */
+  // carrusel
+  prevAvatarBtn.addEventListener("click", prevAvatar);
+  nextAvatarBtn.addEventListener("click", nextAvatar);
 
-  function applySelectedAvatarToMap() {
-    const chosen = AVATARS[selectedAvatarKey] || AVATARS.buster;
-    playerImg.src = chosen.src;
-    playerImg.alt = chosen.alt;
-  }
-
-  function startGame() {
-    if (!selectedAvatarKey) {
-      startHint.textContent = "Selecciona un personaje.";
-      startBtn.disabled = true;
-      return;
+  // teclado (bonus): flechas
+  document.addEventListener("keydown", (e) => {
+    if (!startScreen.classList.contains("hidden")) {
+      if (e.key === "ArrowLeft") prevAvatar();
+      if (e.key === "ArrowRight") nextAvatar();
     }
+  });
 
-    startScreen.classList.add("hidden");
-    gameRoot.classList.remove("hidden");
-
-    applySelectedAvatarToMap();
-
-    const refreshNoSpawn = () => computeNoSpawnRect();
-    if (playerImg.complete) refreshNoSpawn();
-    else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
-
-    setProgress();
-    startLifeTicker();
-    scheduleNextSpawn();
-  }
-
-  // Events
-  startChoices.forEach(btn => btn.addEventListener("click", () => selectAvatar(btn.dataset.avatar)));
   startBtn.addEventListener("click", startGame);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
@@ -571,17 +607,21 @@ document.addEventListener("DOMContentLoaded", () => {
     resetGame();
     gameRoot.classList.add("hidden");
     startScreen.classList.remove("hidden");
-    startBtn.disabled = true;
-    startHint.textContent = "Selecciona un personaje.";
-    selectedAvatarKey = null;
-    startChoices.forEach(b => b.classList.remove("selected"));
+    avatarIndex = 0;
+    renderAvatarCarousel();
   });
 
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
+  closeCardInfoBtn.addEventListener("click", closeCardInfo);
+  cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
+
   window.addEventListener("resize", () => {
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
+
+  // init
+  renderAvatarCarousel();
 });
