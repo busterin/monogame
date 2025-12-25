@@ -25,13 +25,10 @@ body{
 
 button{ font-family:inherit; }
 img{ max-width:100%; height:auto; }
-
 .app{ min-height:100%; display:flex; flex-direction:column; }
 .hidden{ display:none !important; }
 
-/* -----------------------
-   START SCREEN (selector)
------------------------- */
+/* ---------- START SCREEN ---------- */
 .start{
   min-height: 100vh;
   display:flex;
@@ -50,73 +47,80 @@ img{ max-width:100%; height:auto; }
   text-align:center;
 }
 
-.start-title{
-  font-weight: 1000;
-  font-size: 22px;
-}
+.start-title{ font-weight: 1000; font-size: 22px; }
+.start-subtitle{ margin-top: 6px; color: var(--muted); font-size: 13px; }
 
-.start-subtitle{
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 13px;
-}
+.start-btn{ margin-top: 12px; width: min(260px, 100%); }
 
-.start-grid{
+/* Carrusel */
+.carousel{
   margin-top: 16px;
   display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 56px 1fr 56px;
+  align-items:center;
+  gap: 10px;
 }
 
-.start-choice{
+.carousel-btn{
+  width:56px;
+  height:56px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-size: 34px;
+  line-height: 1;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.carousel-btn:hover{ transform: translateY(-1px); }
+.carousel-btn:active{ transform: translateY(1px); }
+
+.carousel-center{
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.06);
-  padding: 12px;
-  cursor:pointer;
+  padding: 14px 12px;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:10px;
-  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+  gap: 10px;
 }
 
-.start-choice:hover{ transform: translateY(-1px); }
-
-.start-choice img{
-  width: 150px;
+.carousel-img{
+  width: 170px;
   max-width: 100%;
-  height: auto;
   filter: drop-shadow(0 14px 22px rgba(0,0,0,.35));
   user-select:none;
   pointer-events:none;
 }
 
-.start-name{
-  font-weight: 900;
+.carousel-name{
+  font-weight: 1000;
+  letter-spacing:.2px;
 }
 
-.start-choice.selected{
-  border-color: rgba(85,214,255,.75);
-  background: rgba(85,214,255,.10);
-  box-shadow: 0 10px 26px rgba(58,208,255,.12);
+.carousel-dots{
+  margin-top: 10px;
+  display:flex;
+  justify-content:center;
+  gap: 8px;
+}
+.dot-indicator{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.20);
+  background: rgba(255,255,255,.10);
+}
+.dot-indicator.active{
+  background: rgba(58,208,255,.85);
+  border-color: rgba(58,208,255,.85);
 }
 
-.start-hint{
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 12px;
-  min-height: 18px;
-}
-
-.start-btn{
-  margin-top: 8px;
-  width: min(260px, 100%);
-}
-
-/* -----------------------
-   TOPBAR / HUD
------------------------- */
+/* ---------- TOPBAR ---------- */
 .topbar{
   display:flex;
   gap:12px;
@@ -129,14 +133,12 @@ img{ max-width:100%; height:auto; }
 }
 
 .brand{ display:flex; gap:10px; align-items:center; min-width: 220px; }
-
 .brand .dot{
   width:12px; height:12px; border-radius:50%;
   background: var(--danger);
   box-shadow: 0 0 18px rgba(255,59,59,.7);
   animation: blink 1.2s infinite;
 }
-
 .title{ font-weight:800; letter-spacing:.2px; }
 .subtitle{ font-size:12px; color:var(--muted); margin-top:2px; }
 
@@ -151,7 +153,6 @@ img{ max-width:100%; height:auto; }
   box-shadow: 0 8px 20px rgba(0,0,0,.20);
   backdrop-filter: blur(8px);
 }
-
 .hud-label{ font-size:11px; color:rgba(233,238,252,.85); }
 .hud-value{ font-size:18px; font-weight:800; margin-top:3px; }
 
@@ -167,15 +168,12 @@ img{ max-width:100%; height:auto; }
   place-items:center;
   backdrop-filter: blur(8px);
 }
-
 .hud-icon-btn:active{ transform: translateY(1px); }
 .deck-icon{ font-size:20px; }
 
 .stage{ flex:1; padding: 10px 14px 12px; display:flex; }
 
-/* -----------------------
-   MAP (grid original)
------------------------- */
+/* ---------- MAP ---------- */
 .map{
   flex:1;
   position:relative;
@@ -191,22 +189,18 @@ img{ max-width:100%; height:auto; }
   min-height: 420px;
 }
 
-/* Player image bottom-left */
 .buster-img{
   position:absolute;
   left:12px;
   bottom:12px;
   width: 120px;
-  height:auto;
   z-index: 2;
   pointer-events:none;
   user-select:none;
   filter: drop-shadow(0 14px 22px rgba(0,0,0,.45));
 }
 
-/* -----------------------
-   POINTS
------------------------- */
+/* ---------- POINTS ---------- */
 .point{
   position:absolute;
   width:16px; height:16px;
@@ -218,7 +212,6 @@ img{ max-width:100%; height:auto; }
   transform: translate(-50%, -50%);
   z-index: 3;
 }
-
 .point::after{
   content:"";
   position:absolute;
@@ -227,7 +220,6 @@ img{ max-width:100%; height:auto; }
   border: 1px solid rgba(255,59,59,.35);
 }
 
-/* executing */
 .point.assigned{
   background: var(--warn);
   box-shadow: 0 0 0 0 rgba(255,213,74,.55);
@@ -235,7 +227,6 @@ img{ max-width:100%; height:auto; }
 }
 .point.assigned::after{ border-color: rgba(255,213,74,.35); }
 
-/* ready -> exaggerated blink, still yellow */
 .point.ready{
   background: var(--warn);
   animation: megaBlinkYellow .55s infinite !important;
@@ -243,9 +234,7 @@ img{ max-width:100%; height:auto; }
 }
 .point.ready::after{ border-color: rgba(255,213,74,.55); }
 
-/* -----------------------
-   MODALS
------------------------- */
+/* ---------- MODALS ---------- */
 .modal{
   position:fixed;
   inset:0;
@@ -260,6 +249,8 @@ img{ max-width:100%; height:auto; }
 
 .modal-card{
   width:min(720px, 100%);
+  max-height: 86vh;
+  overflow: auto;
   background: linear-gradient(180deg, rgba(15,26,51,.98), rgba(14,23,48,.98));
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 18px;
@@ -268,13 +259,12 @@ img{ max-width:100%; height:auto; }
   backdrop-filter: blur(10px);
 }
 
-.modal-head{
-  display:flex;
-  gap: 12px;
-  align-items:flex-start;
-  justify-content:space-between;
+.modal-card-small{
+  width: min(520px, 100%);
+  max-height: 70vh;
 }
 
+.modal-head{ display:flex; gap: 12px; align-items:flex-start; justify-content:space-between; }
 .modal-title{ font-weight:900; font-size:18px; }
 .modal-text{ margin-top:6px; color: var(--muted); font-size:13px; line-height:1.35; }
 
@@ -290,7 +280,6 @@ img{ max-width:100%; height:auto; }
 }
 
 .divider{ height:1px; background: rgba(255,255,255,.10); margin: 12px 0; }
-
 .section-title{ font-weight:800; margin-bottom:10px; }
 
 .grid{
@@ -299,7 +288,6 @@ img{ max-width:100%; height:auto; }
   gap:10px;
 }
 
-/* Character cards (mission modal) */
 .char{
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,.12);
@@ -314,8 +302,6 @@ img{ max-width:100%; height:auto; }
 }
 .char:hover{ transform: translateY(-1px); }
 .char .name{ font-weight:900; }
-.char .tag{ display:none; }
-
 .char.selected{
   border-color: rgba(85,214,255,.7);
   background: rgba(85,214,255,.10);
@@ -331,28 +317,12 @@ img{ max-width:100%; height:auto; }
   color: var(--muted);
   white-space:nowrap;
 }
-.char.selected .pill{
-  color:#06101f;
-  border-color: rgba(58,208,255,.55);
-  background: rgba(58,208,255,.85);
-}
-.char.locked .pill{
-  color: rgba(255,255,255,.72);
-  background: rgba(255,255,255,.06);
-}
 
 .hint{ margin-top:10px; font-size:12px; color: var(--muted); }
 
-.modal-actions{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-}
+.modal-actions{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .modal-actions.end{ justify-content:flex-end; }
 
-/* Buttons */
 .btn{
   appearance:none;
   border:none;
@@ -366,19 +336,9 @@ img{ max-width:100%; height:auto; }
 }
 .btn:disabled{ opacity:.6; cursor:not-allowed; }
 
-/* -----------------------
-   ROULETTE
------------------------- */
+/* ---------- ROULETTE ---------- */
 .roulette-card{ width:min(620px, 100%); }
-
-.roulette-wrap{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:12px;
-  padding: 6px 0 2px;
-}
-
+.roulette-wrap{ display:flex; flex-direction:column; align-items:center; gap:12px; padding: 6px 0 2px; }
 .roulette{ position:relative; width: 220px; height: 220px; }
 
 .roulette-pointer{
@@ -390,54 +350,30 @@ img{ max-width:100%; height:auto; }
   color: var(--text);
   text-shadow: 0 10px 18px rgba(0,0,0,.5);
 }
-
 .roulette-wheel{
   width: 220px; height: 220px;
   border-radius:50%;
   border: 1px solid rgba(255,255,255,.12);
-  background:
-    conic-gradient(from 0deg,
-      rgba(46,229,157,.85) 0 40%,
-      rgba(255,59,59,.85) 40% 100%);
+  background: conic-gradient(from 0deg, rgba(46,229,157,.85) 0 40%, rgba(255,59,59,.85) 40% 100%);
   box-shadow: 0 18px 50px rgba(0,0,0,.35);
   transform: rotate(0deg);
 }
-
 .roulette-outcome{ min-height: 22px; font-weight:900; letter-spacing:.2px; }
 
-/* -----------------------
-   FINAL
------------------------- */
-.final-score{
-  display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  padding: 10px 4px;
-}
+/* ---------- FINAL ---------- */
+.final-score{ display:flex; align-items:baseline; justify-content:space-between; padding: 10px 4px; }
 .final-label{ color: var(--muted); font-weight:700; }
 .final-value{ font-size:42px; font-weight:1000; }
 
-/* -----------------------
-   DECK (cards)
------------------------- */
-.deck-detail{
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.06);
-  border-radius: 14px;
-  padding: 12px;
-  color: var(--muted);
-  line-height: 1.35;
-  min-height: 46px;
-}
-
+/* ---------- DECK (2 por línea, pequeñas) ---------- */
 .deck-grid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .deck-card{
-  border-radius: 18px;
+  border-radius: 16px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.06);
   cursor:pointer;
@@ -450,104 +386,65 @@ img{ max-width:100%; height:auto; }
 
 .deck-card:hover{ transform: translateY(-1px); }
 
-.deck-card.selected{
-  border-color: rgba(85,214,255,.75);
-  background: rgba(85,214,255,.10);
-  box-shadow: 0 10px 26px rgba(58,208,255,.12);
-}
-
 .deck-card img{
   width: 100%;
-  height: 180px;
+  height: 95px;
   object-fit: cover;
   display:block;
 }
 
 .deck-card .deck-card-name{
-  padding: 10px 12px;
+  padding: 7px 9px;
   font-weight: 900;
+  font-size: 12px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 .deck-card .pill{
-  font-size:12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  color: var(--muted);
-  white-space:nowrap;
+  padding: 5px 8px;
+  font-size: 11px;
 }
 
-/* -----------------------
-   ANIMATIONS
------------------------- */
+/* ---------- ANIMATIONS ---------- */
 @keyframes pulse{
   0%{ box-shadow: 0 0 0 0 rgba(255,59,59,.55); opacity:1; }
   70%{ box-shadow: 0 0 0 14px rgba(255,59,59,0); opacity:1; }
   100%{ box-shadow: 0 0 0 0 rgba(255,59,59,0); opacity:.85; }
 }
-
 @keyframes pulseYellow{
   0%{ box-shadow: 0 0 0 0 rgba(255,213,74,.55); opacity:1; }
   70%{ box-shadow: 0 0 0 16px rgba(255,213,74,0); opacity:1; }
   100%{ box-shadow: 0 0 0 0 rgba(255,213,74,0); opacity:.9; }
 }
-
 @keyframes megaBlinkYellow{
   0%{ transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
   50%{ transform: translate(-50%, -50%) scale(1.45); filter: brightness(1.8); }
   100%{ transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
 }
-
 @keyframes blink{
   0%,100%{ opacity:1; }
   50%{ opacity:.35; }
 }
 
-/* -----------------------
-   RESPONSIVE
------------------------- */
+/* ---------- RESPONSIVE ---------- */
 @media (max-width: 520px){
   .topbar{ flex-direction:column; align-items:stretch; }
   .hud{ justify-content:space-between; }
   .map{ min-height: 56vh; }
-
   .grid{ grid-template-columns: 1fr; }
-  .deck-grid{ grid-template-columns: 1fr; }
-
   .buster-img{ width: 100px; }
 
-  .start-grid{ grid-template-columns: 1fr; }
-  .deck-card img{ height: 170px; }
-}
-/* ✅ Modal: permite scroll interno si el contenido no cabe */
-.modal-card{
-  max-height: 86vh;
-  overflow: auto;
-}
-
-/* ✅ Grid de cartas: cartas más pequeñas */
-.deck-grid{
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-/* ✅ Imagen de la carta más baja (más pequeña) */
-.deck-card img{
-  height: 120px;
-}
-
-/* ✅ Texto más compacto */
-.deck-card .deck-card-name{
-  padding: 8px 10px;
-  font-size: 13px;
-}
-
-/* ✅ En móvil, 2 columnas y sigue permitiendo scroll */
-@media (max-width: 520px){
-  .deck-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .deck-card img{ height: 110px; }
+  .carousel{
+    grid-template-columns: 48px 1fr 48px;
+  }
+  .carousel-btn{
+    width:48px;
+    height:48px;
+    border-radius: 14px;
+    font-size: 30px;
+  }
+  .carousel-img{ width: 150px; }
 }
