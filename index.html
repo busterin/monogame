@@ -8,32 +8,61 @@
 </head>
 <body>
   <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="dot"></div>
-        <div>
-          <div class="title">Gestión de recursos</div>
-          <div class="subtitle">Toca los puntos rojos cuando aparezcan</div>
+
+    <!-- PANTALLA INICIO (selector) -->
+    <section id="startScreen" class="start">
+      <div class="start-card">
+        <div class="start-title">Elige tu personaje</div>
+        <div class="start-subtitle">Selecciona uno para comenzar.</div>
+
+        <div class="start-grid">
+          <button class="start-choice" type="button" data-avatar="buster">
+            <img src="images/buster1.PNG" alt="Buster" />
+            <div class="start-name">Buster</div>
+          </button>
+
+          <button class="start-choice" type="button" data-avatar="celia">
+            <img src="images/celia1.PNG" alt="Celia" />
+            <div class="start-name">Celia</div>
+          </button>
         </div>
+
+        <div id="startHint" class="start-hint">Selecciona un personaje.</div>
+
+        <button id="startBtn" class="btn start-btn" type="button" disabled>Comenzar</button>
       </div>
+    </section>
 
-      <div class="hud">
-        <button id="deckBtn" class="hud-icon-btn" type="button" aria-label="Ver personajes">
-          <span class="deck-icon" aria-hidden="true">🃏</span>
-        </button>
-
-        <div class="hud-card">
-          <div class="hud-label">Misiones</div>
-          <div id="progress" class="hud-value">0 / 4</div>
+    <!-- JUEGO -->
+    <div id="gameRoot" class="game hidden">
+      <header class="topbar">
+        <div class="brand">
+          <div class="dot"></div>
+          <div>
+            <div class="title">Gestión de recursos</div>
+            <div class="subtitle">Toca los puntos rojos cuando aparezcan</div>
+          </div>
         </div>
-      </div>
-    </header>
 
-    <main class="stage">
-      <div id="map" class="map" aria-label="Mapa del juego">
-        <img id="busterImg" class="buster-img" src="images/buster1.PNG" alt="Buster" />
-      </div>
-    </main>
+        <div class="hud">
+          <button id="deckBtn" class="hud-icon-btn" type="button" aria-label="Ver personajes">
+            <span class="deck-icon" aria-hidden="true">🃏</span>
+          </button>
+
+          <div class="hud-card">
+            <div class="hud-label">Misiones</div>
+            <div id="progress" class="hud-value">0 / 4</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="stage">
+        <div id="map" class="map" aria-label="Mapa del juego">
+          <!-- Se sustituye dinámicamente según selección -->
+          <img id="playerImg" class="buster-img" src="images/buster1.PNG" alt="Personaje seleccionado" />
+        </div>
+      </main>
+    </div>
   </div>
 
   <!-- MODAL MISIÓN -->
@@ -57,7 +86,6 @@
 
       <div class="divider"></div>
 
-      <!-- Sin porcentaje de éxito -->
       <div class="modal-actions end">
         <button id="confirmBtn" class="btn" type="button">Confirmar</button>
       </div>
