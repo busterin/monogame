@@ -115,12 +115,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let noSpawnRect = null;
 
-  // ✅ selector por orden alfabético (y Maider usa .png + scale solo para mapa)
+  // Avatares (alfabético)
   const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
-    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
     { key: "castri", name: "Castri", src: "images/castri1.PNG", alt: "Castri" },
-    { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider", scale: 1.18 }
+    { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" },
+    { key: "maider", name: "Maider", src: "images/maider1.png", alt: "Maider" }
   ].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   let avatarIndex = 0;
@@ -227,11 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
-
-    // dots: si hay más de 2 avatares, solo activamos para 0/1 (sin tocar HTML)
     dot0?.classList.toggle("active", avatarIndex === 0);
     dot1?.classList.toggle("active", avatarIndex === 1);
-
     if (direction !== 0) animateCarousel(direction);
   }
 
@@ -245,14 +242,118 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAvatarCarousel(+1);
   }
 
-  function applySelectedAvatarToMap() {
+  // -------------------------
+  // ✅ Normalización automática de tamaño en el MAPA
+  // - Analiza PNG con transparencia y calcula bbox del contenido real
+  // - Ajusta el ancho del <img> para que el alto visible sea como Buster
+  // -------------------------
+  const spriteBoxCache = new Map(); // src -> { w, h, boxH, boxW }
+  let referenceVisibleHeightPx = null; // altura visible de Buster en px con width actual
+
+  async function getSpriteBox(src) {
+    if (spriteBoxCache.has(src)) return spriteBoxCache.get(src);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = src;
+
+    await new Promise((res, rej) => {
+      img.onload = () => res();
+      img.onerror = () => rej(new Error("No se pudo cargar " + src));
+    });
+
+    // Si no hay alpha (jpg), no podemos calcular bbox fiable -> fallback
+    const hasPngAlpha = /\.png$/i.test(src) || /\.webp$/i.test(src);
+    if (!hasPngAlpha) {
+      const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
+      spriteBoxCache.set(src, out);
+      return out;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    let minX = width, minY = height, maxX = -1, maxY = -1;
+    // threshold alpha para ignorar ruido
+    const A_TH = 16;
+
+    for (let y = 0; y < height; y++) {
+      const row = y * width * 4;
+      for (let x = 0; x < width; x++) {
+        const a = data[row + x * 4 + 3];
+        if (a > A_TH) {
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    // Si no encontramos alpha (imagen “sólida”), fallback
+    if (maxX < 0 || maxY < 0) {
+      const out = { w: img.naturalWidth, h: img.naturalHeight, boxH: img.naturalHeight, boxW: img.naturalWidth };
+      spriteBoxCache.set(src, out);
+      return out;
+    }
+
+    const boxW = (maxX - minX + 1);
+    const boxH = (maxY - minY + 1);
+
+    const out = { w: img.naturalWidth, h: img.naturalHeight, boxH, boxW };
+    spriteBoxCache.set(src, out);
+    return out;
+  }
+
+  async function applyNormalizedMapSizeFor(src) {
+    // anchor: usa el width CSS actual como base
+    const baseWidthPx = parseFloat(getComputedStyle(playerImg).width) || 120;
+
+    const box = await getSpriteBox(src);
+
+    // visibleHeight con baseWidth
+    const visibleHeight = box.boxH * (baseWidthPx / box.w);
+
+    if (referenceVisibleHeightPx == null) {
+      // primera vez: fijamos referencia con Buster
+      referenceVisibleHeightPx = visibleHeight;
+      playerImg.style.width = ""; // deja el ancho por CSS
+      return;
+    }
+
+    // Calcula el ancho necesario para igualar altura visible a la referencia
+    const neededWidth = referenceVisibleHeightPx * (box.w / box.boxH);
+
+    // Limita por seguridad (evita tamaños absurdos si una imagen viene rara)
+    const clamped = Math.max(baseWidthPx * 0.75, Math.min(neededWidth, baseWidthPx * 1.8));
+
+    // Aplica solo si difiere, para evitar “temblores”
+    playerImg.style.width = `${clamped}px`;
+  }
+
+  async function applySelectedAvatarToMap() {
     const a = AVATARS[avatarIndex];
     playerImg.src = a.src;
     playerImg.alt = a.alt;
 
-    // ✅ SOLO: ajustar Maider para que ocupe como los demás en el mapa
-    const s = (a && typeof a.scale === "number" && isFinite(a.scale)) ? a.scale : 1;
-    playerImg.style.setProperty("--playerScale", String(s));
+    // reset: vuelve al ancho CSS (por si el anterior estaba ajustado)
+    playerImg.style.width = "";
+
+    // Ajuste cuando cargue
+    if (playerImg.complete) {
+      await applyNormalizedMapSizeFor(a.src);
+      computeNoSpawnRect();
+    } else {
+      playerImg.addEventListener("load", async () => {
+        await applyNormalizedMapSizeFor(a.src);
+        computeNoSpawnRect();
+      }, { once: true });
+    }
   }
 
   function startGame() {
@@ -716,4 +817,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // init
   renderAvatarCarousel(0);
+
+  // ✅ fija referencia de tamaño en cuanto podamos (con el Buster del inicio)
+  // (si el src inicial es Buster, esto deja todo listo para el resto)
+  if (playerImg?.getAttribute("src")) {
+    const src = playerImg.getAttribute("src");
+    playerImg.addEventListener("load", async () => {
+      try {
+        referenceVisibleHeightPx = null;
+        await applyNormalizedMapSizeFor(src);
+      } catch {}
+    }, { once: true });
+  }
 });
