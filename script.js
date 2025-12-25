@@ -537,9 +537,11 @@ document.addEventListener("DOMContentLoaded", () => {
     else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
 
     setProgress();
+
+    // ✅ orden correcto: primero reloj, luego spawns
+    startGameClock();
     startLifeTicker();
     scheduleNextSpawn();
-    startGameClock();
   }
 
   function createMissionPoint(mission) {
@@ -641,6 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function scheduleNextSpawn() {
     clearTimeout(spawnTimer);
 
+    // si el juego ya terminó por tiempo, no spawnear
     if (gameClockTimer === null) return;
 
     // cap: si hay 10 puntos, esperamos y reintentamos
@@ -953,9 +956,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setProgress();
     setGlobalPause(false);
+
+    // ✅ orden correcto también aquí
+    startGameClock();
     startLifeTicker();
     scheduleNextSpawn();
-    startGameClock();
   }
 
   // Events
