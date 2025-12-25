@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+  /* ✅ FIX: altura real en móviles (evita corte abajo) */
+  function setAppHeightVar() {
+    const h = window.innerHeight;
+    document.documentElement.style.setProperty("--appH", `${h}px`);
+  }
+  setAppHeightVar();
+  window.addEventListener("resize", setAppHeightVar);
+  window.addEventListener("orientationchange", setAppHeightVar);
+
   const MISSIONS = [
     { id: "m1", title: "Escuela de la Energía", internalTag: "Educación", text: "Misión: Activar una dinámica educativa y coordinar recursos para un taller." },
     { id: "m2", title: "Picofino", internalTag: "Picofino", text: "Misión: Resolver una necesidad operativa de Picofino con recursos limitados." },
@@ -20,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "card_celia", name: "Celia", img: "images/celia.JPEG", text: "Prueba" }
   ];
 
-  // Reglas
   const MISSION_LIFETIME_MS = 2 * 60 * 1000;
   const EXECUTION_TIME_MS = 60 * 1000;
 
@@ -33,11 +41,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const SPAWN_MIN_DELAY_MS = 1200;
   const SPAWN_MAX_DELAY_MS = 6000;
 
-  // DOM: Intro
+  // Intro
   const introScreen = document.getElementById("introScreen");
   const introStartBtn = document.getElementById("introStartBtn");
 
-  // DOM: Start (selector)
+  // Start
   const startScreen = document.getElementById("startScreen");
   const startBtn = document.getElementById("startBtn");
 
@@ -48,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dot0 = document.getElementById("dot0");
   const dot1 = document.getElementById("dot1");
 
-  // DOM: Game
+  // Game
   const gameRoot = document.getElementById("gameRoot");
   const mapEl = document.getElementById("map");
   const playerImg = document.getElementById("playerImg");
@@ -80,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeDeckBtn = document.getElementById("closeDeckBtn");
   const deckGrid = document.getElementById("deckGrid");
 
-  // Card info popup
+  // Card info
   const cardInfoModal = document.getElementById("cardInfoModal");
   const cardInfoTitle = document.getElementById("cardInfoTitle");
   const cardInfoText = document.getElementById("cardInfoText");
@@ -92,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const specialCancelBtn = document.getElementById("specialCancelBtn");
   const specialAcceptBtn = document.getElementById("specialAcceptBtn");
 
-  // Estado juego
+  // Estado
   let score = 0;
   let pendingMissions = [...MISSIONS];
   let activePoints = new Map();
@@ -105,21 +113,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
 
-  // No-spawn rect
   let noSpawnRect = null;
 
-  // Selector jugador
   const AVATARS = [
     { key: "buster", name: "Buster", src: "images/buster1.PNG", alt: "Buster" },
     { key: "celia",  name: "Celia",  src: "images/celia1.PNG",  alt: "Celia" }
   ];
   let avatarIndex = 0;
 
-  // Habilidad
   let specialUsed = false;
   let specialArmed = false;
 
-  // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const rand = (min, max) => Math.random() * (max - min) + min;
   const randInt = (min, max) => Math.floor(rand(min, max + 1));
@@ -165,7 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function computeChance(mission, chosenIds) {
     const missionTag = normalizeTag(mission.internalTag);
     let p = 0;
-
     for (const cid of chosenIds) {
       const ch = CHARACTERS.find(c => c.id === cid);
       if (!ch) continue;
@@ -196,21 +199,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return !(right < noSpawnRect.left || left > noSpawnRect.right || bottom < noSpawnRect.top || top > noSpawnRect.bottom);
   }
 
-  /* -------- INTRO -> START -------- */
   function goToStartScreen() {
     introScreen.classList.add("hidden");
     startScreen.classList.remove("hidden");
   }
 
-  /* -------- SELECTOR (animación) -------- */
   function animateCarousel(direction) {
     const dx = direction > 0 ? 24 : -24;
-
     avatarPreviewImg.animate(
       [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
       { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
     );
-
     avatarPreviewName.animate(
       [{ transform: `translateX(${dx}px)`, opacity: 0 }, { transform: "translateX(0px)", opacity: 1 }],
       { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
@@ -222,10 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
-
     dot0?.classList.toggle("active", avatarIndex === 0);
     dot1?.classList.toggle("active", avatarIndex === 1);
-
     if (direction !== 0) animateCarousel(direction);
   }
 
@@ -264,7 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
-  /* -------- GAME CORE -------- */
   function createMissionPoint(mission) {
     const point = document.createElement("div");
     point.className = "point";
@@ -315,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!st) return;
     if (completedMissionIds.has(missionId)) return;
 
-    // Habilidad armada
     if (specialArmed && !specialUsed) {
       specialUsed = true;
       specialArmed = false;
@@ -405,7 +400,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 200);
   }
 
-  /* -------- MISSION MODAL -------- */
   function openMission(missionId) {
     const st = activePoints.get(missionId);
     if (!st) return;
@@ -497,7 +491,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  /* -------- ROULETTE -------- */
   function spinRoulette(chance, onDone, forcedWin = null) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
@@ -558,7 +551,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, true);
   }
 
-  /* -------- DECK -------- */
   function openCardInfo(cardData){
     setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
@@ -595,7 +587,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  /* -------- HABILIDAD -------- */
   function openSpecialModal() {
     if (specialUsed) return;
     setGlobalPause(true);
@@ -617,7 +608,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
-  /* -------- FINAL / RESET -------- */
   function finishGame() {
     clearInterval(lifeTicker);
     clearTimeout(spawnTimer);
@@ -660,11 +650,9 @@ document.addEventListener("DOMContentLoaded", () => {
     scheduleNextSpawn();
   }
 
-  /* -------- EVENTS -------- */
-  // Intro -> Start
+  // Events
   introStartBtn.addEventListener("click", goToStartScreen);
 
-  // Carrusel
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
@@ -681,42 +669,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", startGame);
 
-  // Click personaje -> habilidad
   playerImg.addEventListener("click", openSpecialModal);
 
-  // Misión
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
 
-  // Deck
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
-  // Card info
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
   cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
 
-  // Habilidad modal
   closeSpecialBtn.addEventListener("click", cancelSpecial);
   specialCancelBtn.addEventListener("click", cancelSpecial);
   specialAcceptBtn.addEventListener("click", acceptSpecial);
   specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
-  // Final
   playAgainBtn.addEventListener("click", () => {
     resetGame();
     gameRoot.classList.add("hidden");
-    // volvemos a la intro (como “home”)
     introScreen.classList.remove("hidden");
     startScreen.classList.add("hidden");
     avatarIndex = 0;
     renderAvatarCarousel(0);
   });
 
-  // Resize (no-spawn)
   window.addEventListener("resize", () => {
+    setAppHeightVar();
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
 
