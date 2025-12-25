@@ -2,10 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const MISSIONS = [
     { id: "m1", title: "Escuela de la Energía", internalTag: "Educación", text: "Misión: Activar una dinámica educativa y coordinar recursos para un taller." },
     { id: "m2", title: "Picofino", internalTag: "Picofino", text: "Misión: Resolver una necesidad operativa de Picofino con recursos limitados." },
-
-    // ✅ Cambiada: ahora es una exposición
     { id: "m3", title: "Batería Alta", internalTag: "Producción", text: "Misión: Preparar la exposición “Batería Alta” coordinando montaje, logística y recursos disponibles." },
-
     { id: "m4", title: "Expo Melquíades Álvarez", internalTag: "Museo", text: "Misión: Preparar una acción cultural en la expo y gestionar imprevistos." }
   ];
 
@@ -83,6 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const cardInfoText = document.getElementById("cardInfoText");
   const closeCardInfoBtn = document.getElementById("closeCardInfoBtn");
 
+  // Habilidad
+  const specialModal = document.getElementById("specialModal");
+  const closeSpecialBtn = document.getElementById("closeSpecialBtn");
+  const specialCancelBtn = document.getElementById("specialCancelBtn");
+  const specialAcceptBtn = document.getElementById("specialAcceptBtn");
+
   // Estado juego
   let score = 0;
   let pendingMissions = [...MISSIONS];
@@ -107,6 +110,10 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   let avatarIndex = 0;
 
+  // Habilidad especial
+  let specialUsed = false;     // consumida
+  let specialArmed = false;    // lista para elegir misión
+
   // Helpers
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
   const rand = (min, max) => Math.random() * (max - min) + min;
@@ -117,6 +124,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showModal(el) { el.classList.add("show"); el.setAttribute("aria-hidden", "false"); }
   function hideModal(el) { el.classList.remove("show"); el.setAttribute("aria-hidden", "true"); }
+
+  function isAnyModalOpen() {
+    return (
+      missionModal.classList.contains("show") ||
+      rouletteModal.classList.contains("show") ||
+      finalModal.classList.contains("show") ||
+      deckModal.classList.contains("show") ||
+      cardInfoModal.classList.contains("show") ||
+      specialModal.classList.contains("show")
+    );
+  }
+
+  // Pausar/reanudar TODAS las misiones mientras un modal esté abierto (incluye habilidad)
+  function setGlobalPause(paused) {
+    const now = performance.now();
+    for (const st of activePoints.values()) {
+      st.isPaused = paused;
+      st.lastTickAt = now;
+    }
+  }
 
   function normalizeTag(tag) {
     const t = String(tag || "").trim().toLowerCase();
@@ -163,29 +190,50 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -----------------------------
-     SELECTOR (carrusel)
+     SELECTOR (carrusel) + animación
   ------------------------------ */
-  function renderAvatarCarousel() {
+  function animateCarousel(direction /* -1 left, +1 right */) {
+    const dx = direction > 0 ? 24 : -24;
+
+    avatarPreviewImg.animate(
+      [
+        { transform: `translateX(${dx}px)`, opacity: 0 },
+        { transform: "translateX(0px)", opacity: 1 }
+      ],
+      { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+    );
+
+    avatarPreviewName.animate(
+      [
+        { transform: `translateX(${dx}px)`, opacity: 0 },
+        { transform: "translateX(0px)", opacity: 1 }
+      ],
+      { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" }
+    );
+  }
+
+  function renderAvatarCarousel(direction = 0) {
     const a = AVATARS[avatarIndex];
     avatarPreviewImg.src = a.src;
     avatarPreviewImg.alt = a.alt;
     avatarPreviewName.textContent = a.name;
 
-    // dots (2 en este prototipo)
     if (dot0 && dot1) {
       dot0.classList.toggle("active", avatarIndex === 0);
       dot1.classList.toggle("active", avatarIndex === 1);
     }
+
+    if (direction !== 0) animateCarousel(direction);
   }
 
   function prevAvatar() {
     avatarIndex = (avatarIndex - 1 + AVATARS.length) % AVATARS.length;
-    renderAvatarCarousel();
+    renderAvatarCarousel(-1);
   }
 
   function nextAvatar() {
     avatarIndex = (avatarIndex + 1) % AVATARS.length;
-    renderAvatarCarousel();
+    renderAvatarCarousel(+1);
   }
 
   function applySelectedAvatarToMap() {
@@ -197,6 +245,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function startGame() {
     startScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
+
+    // reset habilidad por partida
+    specialUsed = false;
+    specialArmed = false;
 
     applySelectedAvatarToMap();
 
@@ -261,6 +313,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = activePoints.get(missionId);
     if (!st) return;
     if (completedMissionIds.has(missionId)) return;
+
+    // ✅ habilidad armada: completa automáticamente con ruleta verde
+    if (specialArmed && !specialUsed) {
+      specialUsed = true;
+      specialArmed = false;
+      openForcedWinRoulette(missionId);
+      return;
+    }
 
     if (st.phase === "spawned") return openMission(missionId);
     if (st.phase === "executing") return;
@@ -358,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = activePoints.get(missionId);
     if (!st) return;
 
-    st.isPaused = true;
+    setGlobalPause(true);
     pausedMissionId = missionId;
 
     currentMissionId = missionId;
@@ -376,18 +436,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function closeMissionModal() {
     hideModal(missionModal);
-
-    if (pausedMissionId) {
-      const st = activePoints.get(pausedMissionId);
-      if (st && st.phase === "spawned") {
-        st.isPaused = false;
-        st.lastTickAt = performance.now();
-      }
-    }
-
     pausedMissionId = null;
     currentMissionId = null;
     selectedCharIds = new Set();
+
+    // reanuda si no hay otros modales abiertos
+    if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
   function renderCharacters() {
@@ -452,9 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     st.phase = "executing";
     st.execRemainingMs = EXECUTION_TIME_MS;
-    st.isPaused = false;
     st.lastTickAt = performance.now();
-
     st.pointEl.classList.add("assigned");
     st.pointEl.classList.remove("ready");
 
@@ -462,16 +514,18 @@ document.addEventListener("DOMContentLoaded", () => {
     pausedMissionId = null;
     currentMissionId = null;
     selectedCharIds = new Set();
+
+    if (!isAnyModalOpen()) setGlobalPause(false);
   }
 
   /* -----------------------------
      ROULETTE
   ------------------------------ */
-  function spinRoulette(chance, onDone) {
+  function spinRoulette(chance, onDone, forcedWin = null) {
     rouletteOutcome.textContent = "";
     rouletteOkBtn.disabled = true;
 
-    const greenPct = clamp(chance, 0.01, 0.99) * 100;
+    const greenPct = clamp(chance, 0.01, 1) * 100;
     rouletteWheel.style.background = `conic-gradient(from 0deg,
       rgba(46,229,157,.85) 0 ${greenPct}%,
       rgba(255,59,59,.85) ${greenPct}% 100%)`;
@@ -485,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     setTimeout(() => {
-      const win = Math.random() < chance;
+      const win = (forcedWin === null) ? (Math.random() < chance) : forcedWin;
       rouletteOutcome.textContent = win ? "✅ ¡Éxito!" : "❌ Fallo";
       rouletteOutcome.style.color = win ? "var(--ok)" : "var(--danger)";
       rouletteOkBtn.disabled = false;
@@ -497,6 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = activePoints.get(missionId);
     if (!st || st.phase !== "ready") return;
 
+    setGlobalPause(true);
     showModal(rouletteModal);
 
     spinRoulette(st.chance ?? 0.10, (win) => {
@@ -505,21 +560,48 @@ document.addEventListener("DOMContentLoaded", () => {
         if (win) winMission(missionId);
         else failMission(missionId);
         rouletteOkBtn.disabled = true;
+        if (!isAnyModalOpen()) setGlobalPause(false);
       };
     });
+  }
+
+  // ✅ habilidad: ruleta 100% verde + victoria garantizada
+  function openForcedWinRoulette(missionId) {
+    const st = activePoints.get(missionId);
+    if (!st) return;
+
+    // si estaba executing, liberará luego por winMission()
+    // si estaba spawned, también vale (se completa sin asignar nadie)
+    setGlobalPause(true);
+    showModal(rouletteModal);
+
+    spinRoulette(1, (win) => {
+      rouletteOkBtn.onclick = () => {
+        hideModal(rouletteModal);
+        // win siempre true aquí
+        winMission(missionId);
+        rouletteOkBtn.disabled = true;
+        if (!isAnyModalOpen()) setGlobalPause(false);
+      };
+    }, true);
   }
 
   /* -----------------------------
      DECK (cards) + popup
   ------------------------------ */
   function openCardInfo(cardData){
+    setGlobalPause(true);
     cardInfoTitle.textContent = cardData.name;
     cardInfoText.textContent = cardData.text; // "Prueba"
     showModal(cardInfoModal);
   }
-  function closeCardInfo(){ hideModal(cardInfoModal); }
+  function closeCardInfo(){
+    hideModal(cardInfoModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
 
   function openDeck() {
+    setGlobalPause(true);
     deckGrid.innerHTML = "";
 
     CARDS.forEach(cardData => {
@@ -543,7 +625,38 @@ document.addEventListener("DOMContentLoaded", () => {
     showModal(deckModal);
   }
 
-  function closeDeck() { hideModal(deckModal); }
+  function closeDeck() {
+    hideModal(deckModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  /* -----------------------------
+     HABILIDAD ESPECIAL
+  ------------------------------ */
+  function openSpecialModal() {
+    if (specialUsed) {
+      // ya usada: no hacemos nada (si quieres mensaje de “ya usada”, lo añadimos)
+      return;
+    }
+    setGlobalPause(true);
+    showModal(specialModal);
+  }
+
+  function closeSpecialModal() {
+    hideModal(specialModal);
+    if (!isAnyModalOpen()) setGlobalPause(false);
+  }
+
+  function acceptSpecial() {
+    if (specialUsed) return;
+    specialArmed = true; // se consumirá al pulsar una misión
+    closeSpecialModal();
+  }
+
+  function cancelSpecial() {
+    specialArmed = false;
+    closeSpecialModal();
+  }
 
   /* -----------------------------
      FINAL / RESET
@@ -552,6 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
     finalScoreEl.textContent = String(score);
+    setGlobalPause(true);
     showModal(finalModal);
   }
 
@@ -561,11 +675,15 @@ document.addEventListener("DOMContentLoaded", () => {
     hideModal(finalModal);
     hideModal(deckModal);
     hideModal(cardInfoModal);
+    hideModal(specialModal);
 
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
 
-    for (const [mid] of activePoints.entries()) removePoint(mid);
+    for (const [mid] of activePoints.entries()) {
+      const st = activePoints.get(mid);
+      if (st?.pointEl?.parentNode) st.pointEl.parentNode.removeChild(st.pointEl);
+    }
 
     score = 0;
     pendingMissions = [...MISSIONS];
@@ -577,7 +695,11 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCharIds = new Set();
     pausedMissionId = null;
 
+    specialUsed = false;
+    specialArmed = false;
+
     setProgress();
+    setGlobalPause(false);
     startLifeTicker();
     scheduleNextSpawn();
   }
@@ -589,7 +711,7 @@ document.addEventListener("DOMContentLoaded", () => {
   prevAvatarBtn.addEventListener("click", prevAvatar);
   nextAvatarBtn.addEventListener("click", nextAvatar);
 
-  // teclado (bonus): flechas
+  // teclado (flechas)
   document.addEventListener("keydown", (e) => {
     if (!startScreen.classList.contains("hidden")) {
       if (e.key === "ArrowLeft") prevAvatar();
@@ -599,29 +721,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   startBtn.addEventListener("click", startGame);
 
+  // click personaje -> habilidad
+  playerImg.addEventListener("click", openSpecialModal);
+
+  // cerrar misión
   closeModalBtn.addEventListener("click", closeMissionModal);
   missionModal.addEventListener("click", (e) => { if (e.target === missionModal) closeMissionModal(); });
   confirmBtn.addEventListener("click", confirmMission);
 
+  // final
   playAgainBtn.addEventListener("click", () => {
     resetGame();
     gameRoot.classList.add("hidden");
     startScreen.classList.remove("hidden");
     avatarIndex = 0;
-    renderAvatarCarousel();
+    renderAvatarCarousel(0);
   });
 
+  // deck
   deckBtn.addEventListener("click", openDeck);
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
+  // popup carta
   closeCardInfoBtn.addEventListener("click", closeCardInfo);
   cardInfoModal.addEventListener("click", (e) => { if (e.target === cardInfoModal) closeCardInfo(); });
+
+  // habilidad modal
+  closeSpecialBtn.addEventListener("click", cancelSpecial);
+  specialCancelBtn.addEventListener("click", cancelSpecial);
+  specialAcceptBtn.addEventListener("click", acceptSpecial);
+  specialModal.addEventListener("click", (e) => { if (e.target === specialModal) cancelSpecial(); });
 
   window.addEventListener("resize", () => {
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
 
   // init
-  renderAvatarCarousel();
+  renderAvatarCarousel(0);
 });
