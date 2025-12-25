@@ -13,11 +13,18 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "c4", name: "Buster", internalTag: "Educación" }
   ];
 
+  // Cartas (baraja)
+  const CARDS = [
+    { id: "card_buster", name: "Buster", img: "images/buster.JPEG", text: "Prueba" },
+    { id: "card_castri", name: "Castri", img: "images/castri.JPEG", text: "Prueba" },
+    { id: "card_maider", name: "Maider", img: "images/maider.JPEG", text: "Prueba" },
+    { id: "card_celia", name: "Celia", img: "images/celia.JPEG", text: "Prueba" }
+  ];
+
   // Reglas
   const MISSION_LIFETIME_MS = 2 * 60 * 1000;
   const EXECUTION_TIME_MS = 60 * 1000;
 
-  // Probabilidad por personaje (suma):
   const MATCH_ADD = 0.80;
   const NO_MATCH_ADD = 0.10;
 
@@ -77,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let lifeTicker = null;
   let spawnTimer = null;
 
-  // Zona prohibida para spawn: caja del personaje en el mapa
   let noSpawnRect = null;
 
   // Selección jugador
@@ -442,25 +448,47 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // -----------------------------
+  // BARAJA: CARTAS
+  // -----------------------------
   function openDeck() {
-    deckDetail.textContent = "Selecciona un personaje.";
+    deckDetail.textContent = "Selecciona una carta.";
     deckGrid.innerHTML = "";
 
-    CHARACTERS.forEach(ch => {
-      const card = document.createElement("div");
-      card.className = "char";
+    let selectedCardId = null;
+
+    CARDS.forEach(cardData => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "deck-card";
+      card.setAttribute("aria-label", `Carta: ${cardData.name}`);
+
       card.innerHTML = `
-        <div><div class="name">${ch.name}</div></div>
-        <div class="pill">Ver</div>
+        <img src="${cardData.img}" alt="${cardData.name}" />
+        <div class="deck-card-name">
+          <span>${cardData.name}</span>
+          <span class="pill">Ver</span>
+        </div>
       `;
-      card.addEventListener("click", () => { deckDetail.textContent = "Prueba"; });
+
+      card.addEventListener("click", () => {
+        selectedCardId = cardData.id;
+        deckDetail.textContent = cardData.text;
+
+        // marcar selección visual
+        Array.from(deckGrid.querySelectorAll(".deck-card")).forEach(el => el.classList.remove("selected"));
+        card.classList.add("selected");
+      });
+
       deckGrid.appendChild(card);
     });
 
     showModal(deckModal);
   }
+
   function closeDeck() { hideModal(deckModal); }
 
+  // Final / reset
   function finishGame() {
     if (lifeTicker) clearInterval(lifeTicker);
     if (spawnTimer) clearTimeout(spawnTimer);
@@ -495,15 +523,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -----------------------------
-  // START SCREEN LOGIC
+  // START SCREEN
   // -----------------------------
   function selectAvatar(key) {
     selectedAvatarKey = key;
-
-    startChoices.forEach(btn => {
-      btn.classList.toggle("selected", btn.dataset.avatar === key);
-    });
-
+    startChoices.forEach(btn => btn.classList.toggle("selected", btn.dataset.avatar === key));
     startHint.textContent = "";
     startBtn.disabled = false;
   }
@@ -521,27 +545,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Muestra juego
     startScreen.classList.add("hidden");
     gameRoot.classList.remove("hidden");
 
     applySelectedAvatarToMap();
 
-    // Calcular zona no-spawn cuando la imagen esté lista
     const refreshNoSpawn = () => computeNoSpawnRect();
     if (playerImg.complete) refreshNoSpawn();
     else playerImg.addEventListener("load", refreshNoSpawn, { once: true });
 
-    // Arranca mecánicas
     setProgress();
     startLifeTicker();
     scheduleNextSpawn();
   }
 
   // Events
-  startChoices.forEach(btn => {
-    btn.addEventListener("click", () => selectAvatar(btn.dataset.avatar));
-  });
+  startChoices.forEach(btn => btn.addEventListener("click", () => selectAvatar(btn.dataset.avatar)));
   startBtn.addEventListener("click", startGame);
 
   closeModalBtn.addEventListener("click", closeMissionModal);
@@ -549,7 +568,6 @@ document.addEventListener("DOMContentLoaded", () => {
   confirmBtn.addEventListener("click", confirmMission);
 
   playAgainBtn.addEventListener("click", () => {
-    // Reinicia juego y vuelve a pantalla de selección
     resetGame();
     gameRoot.classList.add("hidden");
     startScreen.classList.remove("hidden");
@@ -563,7 +581,6 @@ document.addEventListener("DOMContentLoaded", () => {
   closeDeckBtn.addEventListener("click", closeDeck);
   deckModal.addEventListener("click", (e) => { if (e.target === deckModal) closeDeck(); });
 
-  // Resize -> recalcular no-spawn
   window.addEventListener("resize", () => {
     if (!gameRoot.classList.contains("hidden")) computeNoSpawnRect();
   });
